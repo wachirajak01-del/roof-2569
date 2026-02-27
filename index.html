@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ตารางเวรตรวจสอบดาดฟ้า ปีงบประมาณ 2569</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:   #0D1B2A;
+  --blue:   #1B3A5C;
+  --blue2:  #2563A0;
+  --blue3:  #4A90C4;
+  --lblue:  #D6E8F5;
+  --llblue: #EBF3FB;
+  --grey:   #6B7C8D;
+  --lgrey:  #F0F4F8;
+  --white:  #FFFFFF;
+  --red:    #C0392B;
+  --lred:   #FADBD8;
+  --orange: #D4770A;
+  --lorange:#FEF3E2;
+  --green:  #1A7A4A;
+  --lgreen: #D5F0E3;
+  --ok:     #27AE60;
+  --ng:     #E74C3C;
+  --na:     #95A5A6;
+  --yellow: #F9E547;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Sarabun',sans-serif;background:#E2EAF2;min-height:100vh;color:var(--navy);}
+
+/* ── HEADER ── */
+.app-header{background:var(--navy);padding:16px 16px 12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.3);}
+.app-header-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.app-logo{display:flex;align-items:center;gap:10px;}
+.app-logo-icon{width:36px;height:36px;background:var(--blue2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.app-title{font-size:15px;font-weight:700;color:#fff;line-height:1.2;}
+.app-subtitle{font-size:10px;color:var(--blue3);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;}
+.header-actions{display:flex;gap:8px;flex-shrink:0;}
+.btn-header{padding:8px 14px;border-radius:8px;border:none;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.btn-export{background:var(--blue2);color:#fff;}
+.btn-export:hover{background:var(--blue3);}
+.btn-clear{background:rgba(255,255,255,0.12);color:#fff;}
+.btn-clear:hover{background:rgba(255,255,255,0.2);}
+
+/* ── STATS BAR ── */
+.stats-bar{background:var(--blue);padding:10px 16px;}
+.stats-inner{max-width:1200px;margin:0 auto;display:flex;gap:16px;overflow-x:auto;scrollbar-width:none;}
+.stats-inner::-webkit-scrollbar{display:none;}
+.stat-pill{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.1);border-radius:20px;padding:6px 14px;flex-shrink:0;}
+.stat-val{font-size:18px;font-weight:700;color:#fff;font-family:'IBM Plex Mono',monospace;}
+.stat-lbl{font-size:10px;color:var(--lblue);white-space:nowrap;}
+.stat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.stat-dot.ok{background:var(--ok);}
+.stat-dot.ng{background:var(--ng);}
+.stat-dot.na{background:var(--na);}
+
+/* ── LEGEND ── */
+.legend-bar{background:var(--llblue);border-bottom:1px solid var(--lblue);padding:8px 16px;}
+.legend-inner{max-width:1200px;margin:0 auto;display:flex;gap:16px;align-items:center;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--blue);}
+.legend-chip{padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;font-family:'IBM Plex Mono',monospace;}
+.chip-ok{background:var(--lgreen);color:var(--green);}
+.chip-ng{background:var(--lred);color:var(--red);}
+.chip-na{background:#EEEEEE;color:#888;}
+
+/* ── MONTH TABS ── */
+.month-tabs{background:var(--white);border-bottom:2px solid var(--lblue);overflow-x:auto;scrollbar-width:none;}
+.month-tabs::-webkit-scrollbar{display:none;}
+.tabs-inner{display:flex;padding:0 16px;gap:2px;min-width:max-content;}
+.tab{padding:12px 16px;font-size:12px;font-weight:600;color:var(--grey);border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all 0.2s;white-space:nowrap;font-family:'Sarabun',sans-serif;}
+.tab:hover{color:var(--blue2);}
+.tab.active{color:var(--blue2);border-bottom-color:var(--blue2);}
+.tab .tab-badge{display:inline-block;margin-left:5px;background:var(--lgreen);color:var(--green);border-radius:8px;font-size:9px;padding:1px 5px;font-family:'IBM Plex Mono',monospace;}
+.tab .tab-badge.all-done{background:var(--lgreen);color:var(--green);}
+
+/* ── MAIN CONTENT ── */
+.main{max-width:1200px;margin:0 auto;padding:16px;}
+
+/* ── PERSON CARD ── */
+.person-card{background:var(--white);border-radius:12px;margin-bottom:12px;overflow:hidden;box-shadow:0 1px 6px rgba(13,27,42,0.08);transition:box-shadow 0.2s;}
+.person-card:hover{box-shadow:0 4px 16px rgba(13,27,42,0.12);}
+.person-header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--lgrey);}
+.person-num{width:28px;height:28px;border-radius:8px;background:var(--navy);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'IBM Plex Mono',monospace;}
+.person-info{flex:1;min-width:0;}
+.person-name{font-size:14px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.person-area{font-size:11px;color:var(--grey);}
+.risk-badge{padding:3px 10px;border-radius:10px;font-size:10px;font-weight:700;flex-shrink:0;font-family:'IBM Plex Mono',monospace;}
+.risk-h{background:var(--lred);color:var(--red);}
+.risk-m{background:var(--lorange);color:var(--orange);}
+.risk-s{background:var(--lgreen);color:var(--green);}
+.person-progress{height:3px;background:var(--lgrey);}
+.person-progress-bar{height:100%;background:linear-gradient(90deg,var(--blue2),var(--blue3));transition:width 0.5s ease;}
+
+/* ── ROUNDS GRID ── */
+.rounds-grid{padding:12px 16px;display:flex;flex-direction:column;gap:8px;}
+.round-row{display:flex;align-items:center;gap:10px;}
+.round-label{font-size:11px;color:var(--grey);font-family:'IBM Plex Mono',monospace;width:60px;flex-shrink:0;}
+
+/* ── STATUS SELECT ── */
+.status-select-wrap{position:relative;flex-shrink:0;}
+.status-select{
+  appearance:none;-webkit-appearance:none;
+  width:110px;height:40px;
+  border-radius:8px;border:2px solid var(--lblue);
+  padding:0 28px 0 10px;
+  font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;
+  background:var(--white);cursor:pointer;
+  transition:all 0.2s;outline:none;
+}
+.status-select:focus{border-color:var(--blue2);box-shadow:0 0 0 3px rgba(37,99,160,0.15);}
+.status-select.val-ok{background:var(--lgreen);border-color:var(--green);color:var(--green);}
+.status-select.val-ng{background:var(--lred);border-color:var(--red);color:var(--red);}
+.status-select.val-na{background:#EEEEEE;border-color:#CCC;color:#888;}
+.select-arrow{position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:9px;color:var(--grey);}
+
+/* ── DATE INPUT ── */
+.round-date{flex:1;height:40px;border-radius:8px;border:1.5px solid var(--lblue);padding:0 10px;font-family:'Sarabun',sans-serif;font-size:12px;color:var(--navy);background:var(--white);outline:none;transition:border 0.2s;min-width:0;}
+.round-date:focus{border-color:var(--blue2);}
+
+/* ── SIGN BUTTON ── */
+.sign-btn{height:40px;padding:0 12px;background:var(--llblue);border:1.5px solid var(--lblue);border-radius:8px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;color:var(--blue2);cursor:pointer;white-space:nowrap;transition:all 0.2s;display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.sign-btn:hover{background:var(--blue2);color:#fff;border-color:var(--blue2);}
+.sign-btn.has-sig{background:var(--lgreen);border-color:var(--green);color:var(--green);}
+.sign-thumb{width:32px;height:32px;border-radius:4px;object-fit:contain;background:#fff;flex-shrink:0;}
+
+/* ── MODAL OVERLAY ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.6);
+  z-index:1000;display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity 0.25s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{
+  background:var(--white);border-radius:20px 20px 0 0;
+  width:100%;max-width:480px;padding:0;
+  transform:translateY(40px);transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  max-height:90vh;overflow:hidden;display:flex;flex-direction:column;
+}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-handle{width:40px;height:4px;background:#DDD;border-radius:2px;margin:12px auto 0;}
+.modal-header{padding:12px 20px 16px;border-bottom:1px solid var(--lgrey);}
+.modal-title{font-size:16px;font-weight:700;color:var(--navy);}
+.modal-sub{font-size:12px;color:var(--grey);margin-top:2px;}
+.modal-body{padding:16px 20px;flex:1;overflow-y:auto;}
+.canvas-wrap{border:2px dashed var(--lblue);border-radius:12px;overflow:hidden;background:var(--lgrey);position:relative;}
+canvas{display:block;width:100%;touch-action:none;}
+.canvas-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;transition:opacity 0.3s;}
+.canvas-hint-icon{font-size:32px;}
+.canvas-hint-text{font-size:12px;color:var(--grey);margin-top:4px;}
+.modal-footer{padding:12px 20px 20px;display:flex;gap:10px;}
+.btn-modal{flex:1;height:46px;border-radius:10px;border:none;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;}
+.btn-clear-sig{background:var(--lgrey);color:var(--grey);}
+.btn-clear-sig:hover{background:#DDD;}
+.btn-save-sig{background:var(--blue2);color:#fff;}
+.btn-save-sig:hover{background:var(--navy);}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:40px 20px;color:var(--grey);}
+.empty-icon{font-size:40px;margin-bottom:12px;}
+.empty-text{font-size:14px;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:480px){
+  .round-row{flex-wrap:wrap;}
+  .round-date{min-width:100px;}
+  .person-name{font-size:13px;}
+  .btn-header span{display:none;}
+}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:var(--navy);color:#fff;padding:10px 20px;border-radius:20px;
+  font-size:13px;font-weight:600;z-index:2000;transition:transform 0.3s;
+  white-space:nowrap;pointer-events:none;
+}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* ── MONTH HEADER CARD ── */
+.month-header-card{
+  background:linear-gradient(135deg,var(--navy) 0%,var(--blue) 100%);
+  border-radius:12px;padding:14px 18px;margin-bottom:16px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.mhc-left .mhc-name{font-size:18px;font-weight:700;color:#fff;}
+.mhc-left .mhc-sub{font-size:11px;color:var(--lblue);font-family:'IBM Plex Mono',monospace;margin-top:2px;}
+.mhc-right{text-align:right;}
+.mhc-freq{font-size:12px;color:var(--lblue);}
+.mhc-rounds{font-size:22px;font-weight:700;color:var(--yellow);font-family:'IBM Plex Mono',monospace;}
+.mhc-rounds-lbl{font-size:10px;color:var(--lblue);}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="app-header">
+  <div class="app-header-inner">
+    <div class="app-logo">
+      <div class="app-logo-icon">🏗️</div>
+      <div>
+        <div class="app-title">ตารางเวรตรวจสอบดาดฟ้า</div>
+        <div class="app-subtitle">FY 2569 · Preventive Roof Protection</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-header btn-clear" onclick="confirmClear()">🗑 <span>ล้างข้อมูล</span></button>
+      <button class="btn-header btn-export" onclick="exportSummary()">📊 <span>สรุปผล</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stats-inner" id="statsBar"></div>
+</div>
+
+<!-- LEGEND -->
+<div class="legend-bar">
+  <div class="legend-inner">
+    <span style="font-size:11px;font-weight:700;color:var(--blue);margin-right:4px;">สถานะ:</span>
+    <div class="legend-item"><span class="legend-chip chip-ok">✓</span> ดำเนินการแล้ว</div>
+    <div class="legend-item"><span class="legend-chip chip-ng">✗</span> ไม่ดำเนินการ</div>
+    <div class="legend-item"><span class="legend-chip chip-na">-</span> ไม่ถึงรอบ / ยังไม่ดำเนินการ</div>
+  </div>
+</div>
+
+<!-- MONTH TABS -->
+<div class="month-tabs">
+  <div class="tabs-inner" id="monthTabs"></div>
+</div>
+
+<!-- MAIN -->
+<div class="main" id="mainContent"></div>
+
+<!-- SIGNATURE MODAL -->
+<div class="modal-overlay" id="sigModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">✍️ ลงลายมือชื่อ</div>
+      <div class="modal-sub" id="sigModalSub">ลากนิ้วเพื่อเซ็นชื่อในกรอบด้านล่าง</div>
+    </div>
+    <div class="modal-body">
+      <div class="canvas-wrap">
+        <canvas id="sigCanvas" height="200"></canvas>
+        <div class="canvas-hint" id="canvasHint">
+          <div class="canvas-hint-icon">✍️</div>
+          <div class="canvas-hint-text">ลากนิ้วเพื่อเซ็นชื่อที่นี่</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal btn-clear-sig" onclick="clearSig()">ล้าง</button>
+      <button class="btn-modal btn-save-sig" onclick="saveSig()">บันทึกลายเซ็น</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING OVERLAY -->
+<div id="loadingOverlay" style="
+  position:fixed;inset:0;background:rgba(13,27,42,0.85);
+  z-index:9999;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;">
+  <div style="font-size:40px">🔄</div>
+  <div style="color:#fff;font-family:'Sarabun',sans-serif;font-size:16px;font-weight:600;">กำลังโหลดข้อมูล...</div>
+  <div style="color:#4A90C4;font-size:12px;font-family:'IBM Plex Mono',monospace;">Connecting to Firebase</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBEOLhrWEvmzumuUXpimjaKfl3OgEg-POQ",
+  authDomain: "roof-2569.firebaseapp.com",
+  databaseURL: "https://roof-2569-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "roof-2569",
+  storageBucket: "roof-2569.firebasestorage.app",
+  messagingSenderId: "278890175363",
+  appId: "1:278890175363:web:1a8a8bd1f28699bd7574b6",
+  measurementId: "G-NKPTXCFRG8"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ══════════════════════════════════════════
+// FIREBASE HELPERS
+// ══════════════════════════════════════════
+// In-memory cache for fast reads
+const cache = {};
+
+function fbPath(personNum, monthKey, roundIdx, type) {
+  return `roof2569/p${personNum}/${monthKey}/r${roundIdx}/${type}`;
+}
+
+async function fbSet(personNum, monthKey, roundIdx, type, val) {
+  const path = fbPath(personNum, monthKey, roundIdx, type);
+  if (!cache[path] || cache[path] !== val) {
+    cache[path] = val;
+  }
+  await set(ref(db, path), val);
+}
+
+function fbGet(personNum, monthKey, roundIdx, type, def='') {
+  const path = fbPath(personNum, monthKey, roundIdx, type);
+  return cache[path] !== undefined ? cache[path] : def;
+}
+
+// Load all data from Firebase once and cache it
+async function loadAllData() {
+  showLoadingOverlay(true);
+  try {
+    const snapshot = await get(ref(db, 'roof2569'));
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      // Flatten into cache
+      Object.entries(data).forEach(([pKey, months]) => {
+        Object.entries(months).forEach(([monthKey, rounds]) => {
+          Object.entries(rounds).forEach(([rKey, types]) => {
+            Object.entries(types).forEach(([type, val]) => {
+              const path = `roof2569/${pKey}/${monthKey}/${rKey}/${type}`;
+              cache[path] = val;
+            });
+          });
+        });
+      });
+    }
+  } catch(e) {
+    console.error('Load error:', e);
+  }
+  showLoadingOverlay(false);
+  renderStats(); renderTabs(); renderMain();
+
+  // Listen for realtime changes
+  onValue(ref(db, 'roof2569'), (snapshot) => {
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      Object.entries(data).forEach(([pKey, months]) => {
+        Object.entries(months).forEach(([monthKey, rounds]) => {
+          Object.entries(rounds).forEach(([rKey, types]) => {
+            Object.entries(types).forEach(([type, val]) => {
+              const path = `roof2569/${pKey}/${monthKey}/${rKey}/${type}`;
+              cache[path] = val;
+            });
+          });
+        });
+      });
+    }
+    renderStats(); renderTabs(); renderMain();
+  });
+}
+
+function showLoadingOverlay(show) {
+  document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+}
+
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+const STAFF = [
+  {num:1,  name:"ชาติชาย นาคเครือ",         area:"40 ปี",         risk:"M"},
+  {num:2,  name:"นายทัศพล ฉลาดล้ำ",         area:"อาคารพิเศษ 5", risk:"H"},
+  {num:3,  name:"นายนวพรรษ โพนสุภาพ",       area:"10 ชั้น",       risk:"M"},
+  {num:4,  name:"นายปฐมพล ไทยานนท์",        area:"มโนรมย์",       risk:"H"},
+  {num:5,  name:"นายลำไพ ผุยคำสิงห์",      area:"40 ปี",         risk:"M"},
+  {num:6,  name:"นายสนิท เฉวียงวงษ์",       area:"มโนรมย์",       risk:"H"},
+  {num:7,  name:"นายพรมลิขิต บุทธิจักร",   area:"อาคารพิเศษ 5", risk:"H"},
+  {num:8,  name:"นายชนชล มูลพรม",           area:"มโนรมย์",       risk:"H"},
+  {num:9,  name:"นายปิยะวัฒน์ มัดชะนา",    area:"มโนรมย์",       risk:"H"},
+  {num:10, name:"นาย ปรีชา สระแก้ว",        area:"10 ชั้น",       risk:"M"},
+  {num:11, name:"นายศิริศักดิ์ เรืองชอ",   area:"10 ชั้น",       risk:"M"},
+  {num:12, name:"นายอัศฎาวุธ อรรคศรี",      area:"อาคารพิเศษ 5", risk:"H"},
+  {num:13, name:"นายธนพล ไชยสีหา",          area:"อาคารพิเศษ 5", risk:"H"},
+];
+
+// ปีงบประมาณ 2569: ก.พ. 2569 – ก.พ. 2570
+// rounds rule:
+//   ม.ค.2569–เม.ย.2569 = ทุก 2 สัปดาห์ = 2 ครั้ง/เดือน
+//   พ.ค.2569–ต.ค.2569  = อาทิตย์ละ 1 ครั้ง = 4 ครั้ง/เดือน
+//   ธ.ค.2569            = 1 ครั้ง
+//   เดือนอื่น (ก.พ.2569, มี.ค.2569, พ.ย.2569, ม.ค.2570, ก.พ.2570) = 2 ครั้ง/เดือน
+// แต่โจทย์ระบุช่วง ก.พ.2569–ก.พ.2570 ดังนี้:
+//   ก.พ.69(เริ่ม), มี.ค.69 = 2 ครั้ง/เดือน  (ม.ค.–เม.ย. = 2/เดือน)
+//   เม.ย.69 = 2 ครั้ง/เดือน
+//   พ.ค.69–ต.ค.69 = 4 ครั้ง/เดือน
+//   พ.ย.69 = 2 ครั้ง/เดือน (ไม่ได้ระบุ → ใช้ default 2)
+//   ธ.ค.69 = 1 ครั้ง
+//   ม.ค.70 = 2 ครั้ง/เดือน
+//   ก.พ.70(สิ้นสุด) = 2 ครั้ง/เดือน
+
+const MONTHS = [
+  {key:"2569-02", th:"กุมภาพันธ์ 2569", en:"Feb 2026", rounds:2, freq:"2 ครั้ง/เดือน"},
+  {key:"2569-03", th:"มีนาคม 2569",     en:"Mar 2026", rounds:2, freq:"2 ครั้ง/เดือน"},
+  {key:"2569-04", th:"เมษายน 2569",     en:"Apr 2026", rounds:2, freq:"2 ครั้ง/เดือน"},
+  {key:"2569-05", th:"พฤษภาคม 2569",    en:"May 2026", rounds:4, freq:"ทุกสัปดาห์ (4 ครั้ง)"},
+  {key:"2569-06", th:"มิถุนายน 2569",   en:"Jun 2026", rounds:4, freq:"ทุกสัปดาห์ (4 ครั้ง)"},
+  {key:"2569-07", th:"กรกฎาคม 2569",    en:"Jul 2026", rounds:4, freq:"ทุกสัปดาห์ (4 ครั้ง)"},
+  {key:"2569-08", th:"สิงหาคม 2569",    en:"Aug 2026", rounds:4, freq:"ทุกสัปดาห์ (4 ครั้ง)"},
+  {key:"2569-09", th:"กันยายน 2569",    en:"Sep 2026", rounds:4, freq:"ทุกสัปดาห์ (4 ครั้ง)"},
+  {key:"2569-10", th:"ตุลาคม 2569",     en:"Oct 2026", rounds:4, freq:"ทุกสัปดาห์ (4 ครั้ง)"},
+  {key:"2569-11", th:"พฤศจิกายน 2569",  en:"Nov 2026", rounds:2, freq:"2 ครั้ง/เดือน"},
+  {key:"2569-12", th:"ธันวาคม 2569",    en:"Dec 2026", rounds:1, freq:"1 ครั้ง"},
+  {key:"2570-01", th:"มกราคม 2570",     en:"Jan 2027", rounds:2, freq:"2 ครั้ง/เดือน"},
+  {key:"2570-02", th:"กุมภาพันธ์ 2570", en:"Feb 2027", rounds:2, freq:"2 ครั้ง/เดือน"},
+];
+
+const RISK_LABEL = {H:"High", M:"Medium", S:"Standard"};
+const RISK_CLASS = {H:"risk-h", M:"risk-m", S:"risk-s"};
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let currentMonth = MONTHS[0].key;
+let sigTarget = null; // {personNum, monthKey, roundIdx}
+let isDrawing = false;
+let lastX = 0, lastY = 0;
+let hasDrawn = false;
+
+function getState(personNum, monthKey, roundIdx) {
+  return fbGet(personNum, monthKey, roundIdx, 'state', '-');
+}
+function setState(personNum, monthKey, roundIdx, val) {
+  fbSet(personNum, monthKey, roundIdx, 'state', val);
+}
+function getSig(personNum, monthKey, roundIdx) {
+  return fbGet(personNum, monthKey, roundIdx, 'sig', null);
+}
+function setSig(personNum, monthKey, roundIdx, data) {
+  fbSet(personNum, monthKey, roundIdx, 'sig', data || null);
+}
+function getDate(personNum, monthKey, roundIdx) {
+  return fbGet(personNum, monthKey, roundIdx, 'date', '');
+}
+function setDate(personNum, monthKey, roundIdx, val) {
+  fbSet(personNum, monthKey, roundIdx, 'date', val || '');
+}
+
+// ══════════════════════════════════════════
+// STATS
+// ══════════════════════════════════════════
+function calcStats() {
+  let total=0, done=0, notDone=0, na=0, target=0;
+  MONTHS.forEach(m=>{
+    STAFF.forEach(p=>{
+      for(let r=0;r<m.rounds;r++){
+        const s = getState(p.num, m.key, r);
+        total++;
+        if(s==='✓') done++;
+        else if(s==='✗') notDone++;
+        else na++;
+      }
+      target += m.rounds;
+    });
+  });
+  return {total, done, notDone, na, target};
+}
+
+function calcMonthStats(monthKey) {
+  const m = MONTHS.find(x=>x.key===monthKey);
+  let done=0, total=0;
+  STAFF.forEach(p=>{
+    for(let r=0;r<m.rounds;r++){
+      total++;
+      if(getState(p.num, monthKey, r)==='✓') done++;
+    }
+  });
+  return {done, total};
+}
+
+function renderStats() {
+  const {done, notDone, na, target} = calcStats();
+  const pct = target>0 ? Math.round(done/target*100) : 0;
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat-pill"><div class="stat-dot ok"></div><div><div class="stat-val">${done}</div><div class="stat-lbl">ดำเนินการแล้ว</div></div></div>
+    <div class="stat-pill"><div class="stat-dot ng"></div><div><div class="stat-val">${notDone}</div><div class="stat-lbl">ไม่ดำเนินการ</div></div></div>
+    <div class="stat-pill"><div class="stat-dot na"></div><div><div class="stat-val">${na}</div><div class="stat-lbl">ยังไม่ถึงรอบ</div></div></div>
+    <div class="stat-pill"><div style="font-size:16px">📊</div><div><div class="stat-val">${pct}%</div><div class="stat-lbl">ความสำเร็จ</div></div></div>
+    <div class="stat-pill"><div style="font-size:16px">📅</div><div><div class="stat-val">${target}</div><div class="stat-lbl">เป้าหมาย (ครั้ง)</div></div></div>
+  `;
+}
+
+// ══════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════
+function renderTabs() {
+  const html = MONTHS.map(m=>{
+    const {done, total} = calcMonthStats(m.key);
+    const badge = done>0 ? `<span class="tab-badge">${done}/${total}</span>` : '';
+    return `<button class="tab ${m.key===currentMonth?'active':''}" onclick="switchMonth('${m.key}')">${m.th.split(' ')[0]}${badge}</button>`;
+  }).join('');
+  document.getElementById('monthTabs').innerHTML = html;
+}
+
+function switchMonth(key) {
+  currentMonth = key;
+  renderTabs();
+  renderMain();
+}
+
+// ══════════════════════════════════════════
+// MAIN RENDER
+// ══════════════════════════════════════════
+function renderMain() {
+  const m = MONTHS.find(x=>x.key===currentMonth);
+  const {done, total} = calcMonthStats(currentMonth);
+
+  let html = `
+    <div class="month-header-card">
+      <div class="mhc-left">
+        <div class="mhc-name">${m.th}</div>
+        <div class="mhc-sub">${m.en} · ปีงบประมาณ 2569</div>
+      </div>
+      <div class="mhc-right">
+        <div class="mhc-freq">${m.freq}</div>
+        <div class="mhc-rounds">${done}<span style="font-size:14px;color:var(--lblue)">/${total}</span></div>
+        <div class="mhc-rounds-lbl">ดำเนินการแล้ว</div>
+      </div>
+    </div>
+  `;
+
+  STAFF.forEach(p=>{
+    const doneCount = Array.from({length:m.rounds},(_,r)=>getState(p.num,m.key,r)==='✓').filter(Boolean).length;
+    const pct = m.rounds>0 ? doneCount/m.rounds*100 : 0;
+
+    html += `<div class="person-card">
+      <div class="person-header">
+        <div class="person-num">${p.num}</div>
+        <div class="person-info">
+          <div class="person-name">${p.name}</div>
+          <div class="person-area">📍 ${p.area}</div>
+        </div>
+        <div class="risk-badge ${RISK_CLASS[p.risk]}">${RISK_LABEL[p.risk]}</div>
+      </div>
+      <div class="person-progress"><div class="person-progress-bar" style="width:${pct}%"></div></div>
+      <div class="rounds-grid">`;
+
+    for(let r=0;r<m.rounds;r++){
+      const st = getState(p.num, m.key, r);
+      const sig = getSig(p.num, m.key, r);
+      const dt = getDate(p.num, m.key, r);
+      const valClass = st==='✓'?'val-ok':st==='✗'?'val-ng':'val-na';
+      const sigLabel = sig ? '✅ มีลายเซ็น' : '✍️ เซ็นรับรอง';
+      const sigClass = sig ? 'has-sig' : '';
+      const sigContent = sig
+        ? `<img class="sign-thumb" src="${sig}" alt="sig"> ${sigLabel}`
+        : `✍️ เซ็นรับรอง`;
+
+      html += `<div class="round-row">
+        <div class="round-label">ครั้งที่ ${r+1}</div>
+        <div class="status-select-wrap">
+          <select class="status-select ${valClass}" 
+            onchange="onStatusChange(${p.num},'${m.key}',${r},this)"
+            data-person="${p.num}" data-month="${m.key}" data-round="${r}">
+            <option value="-"  ${st==='-'?'selected':''}>-  ยังไม่ถึงรอบ</option>
+            <option value="✓" ${st==='✓'?'selected':''}>✓  ดำเนินการแล้ว</option>
+            <option value="✗" ${st==='✗'?'selected':''}>✗  ไม่ดำเนินการ</option>
+          </select>
+          <span class="select-arrow">▼</span>
+        </div>
+        <input type="date" class="round-date" value="${dt}"
+          onchange="onDateChange(${p.num},'${m.key}',${r},this)"
+          placeholder="วันที่">
+        <button class="sign-btn ${sigClass}" onclick="openSig(${p.num},'${m.key}',${r})">
+          ${sigContent}
+        </button>
+      </div>`;
+    }
+
+    html += `</div></div>`;
+  });
+
+  document.getElementById('mainContent').innerHTML = html;
+}
+
+// ══════════════════════════════════════════
+// EVENT HANDLERS
+// ══════════════════════════════════════════
+function onStatusChange(personNum, monthKey, roundIdx, sel) {
+  setState(personNum, monthKey, roundIdx, sel.value);
+  const valClass = sel.value==='✓'?'val-ok':sel.value==='✗'?'val-ng':'val-na';
+  sel.className = `status-select ${valClass}`;
+  renderStats();
+  renderTabs();
+  // update progress bar
+  const m = MONTHS.find(x=>x.key===monthKey);
+  const doneCount = Array.from({length:m.rounds},(_,r)=>getState(personNum,monthKey,r)==='✓').filter(Boolean).length;
+  showToast(sel.value==='✓'?'✅ บันทึก: ดำเนินการแล้ว':sel.value==='✗'?'❌ บันทึก: ไม่ดำเนินการ':'📌 บันทึก: ยังไม่ถึงรอบ');
+}
+
+function onDateChange(personNum, monthKey, roundIdx, inp) {
+  setDate(personNum, monthKey, roundIdx, inp.value);
+}
+
+// ══════════════════════════════════════════
+// SIGNATURE
+// ══════════════════════════════════════════
+let canvas, ctx;
+
+function openSig(personNum, monthKey, roundIdx) {
+  sigTarget = {personNum, monthKey, roundIdx};
+  const m = MONTHS.find(x=>x.key===monthKey);
+  const p = STAFF.find(x=>x.num===personNum);
+  document.getElementById('sigModalSub').textContent = `${p.name} · ${m.th} · ครั้งที่ ${roundIdx+1}`;
+
+  const overlay = document.getElementById('sigModal');
+  overlay.classList.add('open');
+
+  canvas = document.getElementById('sigCanvas');
+  // Set canvas resolution
+  const wrap = canvas.parentElement;
+  const w = wrap.offsetWidth || 340;
+  canvas.width = w;
+  canvas.height = 200;
+  ctx = canvas.getContext('2d');
+  ctx.strokeStyle = '#1B3A5C';
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  hasDrawn = false;
+
+  // Load existing sig
+  const existing = getSig(personNum, monthKey, roundIdx);
+  if(existing){
+    const img = new Image();
+    img.onload = ()=>{ ctx.drawImage(img,0,0); hasDrawn=true; updateHint(); };
+    img.src = existing;
+  }
+  updateHint();
+
+  // Events
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', stopDraw);
+  canvas.addEventListener('mouseleave', stopDraw);
+  canvas.addEventListener('touchstart', touchStart, {passive:false});
+  canvas.addEventListener('touchmove', touchMove, {passive:false});
+  canvas.addEventListener('touchend', stopDraw);
+}
+
+function closeSig() {
+  document.getElementById('sigModal').classList.remove('open');
+  if(canvas){
+    canvas.removeEventListener('mousedown', startDraw);
+    canvas.removeEventListener('mousemove', draw);
+    canvas.removeEventListener('mouseup', stopDraw);
+    canvas.removeEventListener('mouseleave', stopDraw);
+    canvas.removeEventListener('touchstart', touchStart);
+    canvas.removeEventListener('touchmove', touchMove);
+    canvas.removeEventListener('touchend', stopDraw);
+  }
+}
+
+function getPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  return { x:(e.clientX-rect.left)*scaleX, y:(e.clientY-rect.top)*scaleY };
+}
+function getTouchPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const t = e.touches[0];
+  return { x:(t.clientX-rect.left)*scaleX, y:(t.clientY-rect.top)*scaleY };
+}
+function startDraw(e){ isDrawing=true; const {x,y}=getPos(e); lastX=x; lastY=y; }
+function draw(e){ if(!isDrawing)return; e.preventDefault(); const {x,y}=getPos(e); drawLine(x,y); }
+function touchStart(e){ e.preventDefault(); isDrawing=true; const {x,y}=getTouchPos(e); lastX=x; lastY=y; }
+function touchMove(e){ if(!isDrawing)return; e.preventDefault(); const {x,y}=getTouchPos(e); drawLine(x,y); }
+function stopDraw(){ isDrawing=false; }
+function drawLine(x,y){
+  ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(x,y); ctx.stroke();
+  lastX=x; lastY=y; hasDrawn=true; updateHint();
+}
+function updateHint(){ document.getElementById('canvasHint').style.opacity = hasDrawn?'0':'1'; }
+
+function clearSig() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  hasDrawn=false; updateHint();
+}
+
+function saveSig() {
+  if(!hasDrawn){ showToast('⚠️ กรุณาเซ็นชื่อก่อนบันทึก'); return; }
+  const data = canvas.toDataURL('image/png');
+  const {personNum,monthKey,roundIdx} = sigTarget;
+  setSig(personNum, monthKey, roundIdx, data);
+  closeSig();
+  renderMain();
+  showToast('✅ บันทึกลายเซ็นเรียบร้อย');
+}
+
+// Close modal on overlay click
+document.getElementById('sigModal').addEventListener('click', function(e){
+  if(e.target===this) closeSig();
+});
+
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+function confirmClear() {
+  if(confirm('ล้างข้อมูลทั้งหมด? การกระทำนี้ไม่สามารถยกเลิกได้')) {
+    remove(ref(db, 'roof2569')).then(() => {
+      // Clear cache
+      Object.keys(cache).forEach(k => delete cache[k]);
+      renderStats(); renderTabs(); renderMain();
+      showToast('🗑 ล้างข้อมูลแล้ว');
+    });
+  }
+}
+
+function exportSummary() {
+  let text = 'สรุปผลการตรวจสอบดาดฟ้า ปีงบประมาณ 2569\n';
+  text += '='.repeat(50)+'\n\n';
+  MONTHS.forEach(m=>{
+    const {done,total} = calcMonthStats(m.key);
+    text += `📅 ${m.th}  (${done}/${total} ครั้ง)\n`;
+    STAFF.forEach(p=>{
+      let row = `  ${p.num}. ${p.name}`;
+      for(let r=0;r<m.rounds;r++){
+        const s=getState(p.num,m.key,r);
+        const d=getDate(p.num,m.key,r);
+        row += `  [ครั้งที่${r+1}:${s}${d?' '+d:''}]`;
+      }
+      text += row+'\n';
+    });
+    text += '\n';
+  });
+  const blob = new Blob(['\ufeff'+text],{type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='สรุปเวรดาดฟ้า_2569.txt'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('📊 ส่งออกสรุปแล้ว');
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+loadAllData();
+
+// Expose functions to global scope (needed for onclick in HTML)
+window.onStatusChange = onStatusChange;
+window.onDateChange = onDateChange;
+window.openSig = openSig;
+window.closeSig = closeSig;
+window.clearSig = clearSig;
+window.saveSig = saveSig;
+window.switchMonth = switchMonth;
+window.confirmClear = confirmClear;
+window.exportSummary = exportSummary;
+</script>
+
+</body>
+</html>
