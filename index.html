@@ -1,0 +1,4261 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Personal OS v3 — ระบบชีวิต + เทรด</title>
+
+<style>
+/* ====================================================
+   DESIGN TOKENS — Executive Dark Intelligence Theme
+   ==================================================== */
+:root {
+  /* Core Palette — Deep Navy Intelligence */
+  --bg:           #080E1A;
+  --bg-2:         #0D1525;
+  --surface:      #111B2E;
+  --surface-2:    #172035;
+  --surface-3:    #1E2B42;
+  --surface-4:    #243350;
+  --border:       rgba(100,130,180,0.12);
+  --border-md:    rgba(100,130,180,0.20);
+  --border-lg:    rgba(100,130,180,0.35);
+
+  /* Brand Colors */
+  --brand:        #3B82F6;
+  --brand-glow:   rgba(59,130,246,0.25);
+  --brand-dark:   #1D4ED8;
+  --cyan:         #06B6D4;
+  --cyan-glow:    rgba(6,182,212,0.2);
+  --teal:         #14B8A6;
+  --gold:         #F59E0B;
+  --gold-glow:    rgba(245,158,11,0.2);
+
+  /* Semantic */
+  --win:          #10B981;
+  --win-bg:       rgba(16,185,129,0.1);
+  --win-border:   rgba(16,185,129,0.3);
+  --loss:         #EF4444;
+  --loss-bg:      rgba(239,68,68,0.1);
+  --loss-border:  rgba(239,68,68,0.3);
+  --warn:         #F59E0B;
+  --warn-bg:      rgba(245,158,11,0.1);
+  --warn-border:  rgba(245,158,11,0.3);
+  --info-bg:      rgba(59,130,246,0.1);
+
+  /* Text */
+  --text-1:       #F0F4FF;
+  --text-2:       #A8B8D8;
+  --text-3:       #647A9B;
+  --text-4:       #3D5070;
+
+  /* Typography — system fonts, works 100% offline on iOS/Android/Desktop */
+  --font-ui:      -apple-system, 'Helvetica Neue', Arial, 'Noto Sans Thai', sans-serif;
+  --font-mono:    'SF Mono', 'Courier New', Courier, monospace;
+  --font-display: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+
+  /* Spacing */
+  --sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;
+  --sp-5:20px;--sp-6:24px;--sp-8:32px;--sp-10:40px;
+
+  /* Radius */
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:20px;--r-2xl:24px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.4);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.04);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.6);
+  --glow-brand: 0 0 20px rgba(59,130,246,.3);
+  --glow-win:   0 0 12px rgba(16,185,129,.25);
+  --glow-loss:  0 0 12px rgba(239,68,68,.25);
+
+  /* Transitions */
+  --t-fast: 120ms ease;
+  --t-mid:  250ms ease;
+  --t-slow: 400ms cubic-bezier(.16,1,.3,1);
+}
+
+/* ====================================================
+   RESET & BASE
+   ==================================================== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html { height: 100%; }
+body {
+  height: 100%;
+  font-family: var(--font-ui);
+  background: var(--bg);
+  color: var(--text-1);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;}
+input,textarea,select{font-family:inherit;}
+a{text-decoration:none;color:inherit;}
+input[type=range]{-webkit-appearance:none;appearance:none;}
+
+/* ====================================================
+   APP SHELL
+   ==================================================== */
+#app {
+  display: none;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--bg);
+  position: relative;
+  overflow: clip; /* clip visual ไม่บล็อก touch events บน iOS */
+}
+#app.ready {
+  display: flex;
+}
+
+/* ====================================================
+   TOP BAR
+   ==================================================== */
+.top-bar {
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  padding: var(--sp-3) var(--sp-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  z-index: 10;
+  backdrop-filter: blur(12px);
+}
+.top-bar-brand { display: flex; align-items: center; gap: var(--sp-3); }
+.brand-logo {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--brand), var(--cyan));
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-size: 13px; font-weight: 800;
+  color: white;
+  box-shadow: var(--glow-brand);
+}
+.brand-name { font-size: 15px; font-weight: 700; color: var(--text-1); letter-spacing: -.3px; }
+.brand-sub  { font-size: 11px; color: var(--text-3); }
+.top-bar-actions { display: flex; gap: var(--sp-2); }
+.icon-btn {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  transition: var(--t-fast);
+  position: relative;
+}
+.icon-btn:active { transform: scale(.92); }
+.notif-dot {
+  width: 8px; height: 8px;
+  background: var(--loss);
+  border-radius: 50%;
+  position: absolute; top: 4px; right: 4px;
+  border: 2px solid var(--bg-2);
+}
+
+/* ====================================================
+   SCROLL AREA
+   ==================================================== */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 88px;
+  scroll-behavior: smooth;
+}
+.scroll-area::-webkit-scrollbar { display: none; }
+
+/* ====================================================
+   PAGES
+   ==================================================== */
+.page { display: none; }
+.page.active { display: block; animation: fadeIn .2s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+/* ====================================================
+   BOTTOM NAV
+   ==================================================== */
+.bottom-nav {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: var(--bg-2);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding: var(--sp-2) var(--sp-1) calc(var(--sp-2) + env(safe-area-inset-bottom));
+  z-index: 20;
+  backdrop-filter: blur(16px);
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: var(--sp-2);
+  border-radius: var(--r-md);
+  transition: var(--t-fast);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-icon { font-size: 20px; line-height: 1; }
+.nav-label { font-size: 10px; font-weight: 500; color: var(--text-3); }
+.nav-item.active { background: rgba(59,130,246,.12); }
+.nav-item.active .nav-label { color: var(--brand); }
+.nav-item:active { transform: scale(.88); }
+
+/* ====================================================
+   SECTION HEADERS
+   ==================================================== */
+.page-header {
+  padding: var(--sp-5) var(--sp-4) var(--sp-3);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.page-title { font-size: 22px; font-weight: 800; color: var(--text-1); letter-spacing: -.5px; }
+.page-sub   { font-size: 13px; color: var(--text-3); margin-top: 2px; }
+
+/* ====================================================
+   CARDS
+   ==================================================== */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  margin: 0 var(--sp-4) var(--sp-3);
+  padding: var(--sp-4);
+  box-shadow: var(--shadow-sm);
+}
+.card-sm { padding: var(--sp-3); }
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: var(--sp-3);
+}
+.card-title { font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; }
+.card-action { font-size: 12px; color: var(--brand); font-weight: 600; cursor: pointer; }
+
+/* Hero Card */
+.hero-card {
+  background: linear-gradient(135deg, #0D1F3C 0%, #0A1829 60%, #081220 100%);
+  border: 1px solid rgba(59,130,246,.25);
+  position: relative;
+  overflow: hidden;
+}
+.hero-card::before {
+  content: '';
+  position: absolute; top: -60px; right: -60px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(59,130,246,.12) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.hero-card::after {
+  content: '';
+  position: absolute; bottom: -40px; left: -20px;
+  width: 150px; height: 150px;
+  background: radial-gradient(circle, rgba(6,182,212,.08) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.hero-date { font-size: 11px; color: var(--text-3); margin-bottom: var(--sp-1); }
+.hero-title { font-size: 18px; font-weight: 800; color: var(--text-1); letter-spacing: -.4px; margin-bottom: var(--sp-4); }
+.hero-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--sp-3); position: relative; z-index: 1; }
+.hero-stat-val { font-size: 24px; font-weight: 700; font-family: var(--font-mono); line-height: 1; }
+.hero-stat-val.pos { color: var(--win); }
+.hero-stat-val.neg { color: var(--loss); }
+.hero-stat-val.neu { color: var(--text-1); }
+.hero-stat-label { font-size: 10px; color: var(--text-3); margin-top: 4px; }
+
+/* ====================================================
+   METRIC GRID
+   ==================================================== */
+.metric-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+  margin: 0 var(--sp-4) var(--sp-3);
+}
+.metric-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-3) var(--sp-4);
+}
+.metric-icon { font-size: 16px; margin-bottom: var(--sp-1); }
+.metric-val  { font-size: 26px; font-weight: 700; color: var(--text-1); font-family: var(--font-mono); line-height: 1; }
+.metric-label{ font-size: 11px; color: var(--text-3); margin-top: 3px; }
+.metric-badge{ display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; margin-top: var(--sp-1); }
+.mb-win  { background: var(--win-bg); color: var(--win); }
+.mb-warn { background: var(--warn-bg); color: var(--warn); }
+.mb-loss { background: var(--loss-bg); color: var(--loss); }
+.mb-info { background: var(--info-bg); color: var(--brand); }
+
+/* ====================================================
+   GATE CARD
+   ==================================================== */
+.gate-card {
+  border-radius: var(--r-xl);
+  margin: 0 var(--sp-4) var(--sp-3);
+  padding: var(--sp-4);
+  display: flex; align-items: center; gap: var(--sp-3);
+  border: 1.5px solid;
+  transition: var(--t-mid);
+}
+.gate-go   { background: var(--win-bg);  border-color: var(--win-border);  }
+.gate-no   { background: var(--loss-bg); border-color: var(--loss-border); }
+.gate-warn { background: var(--warn-bg); border-color: var(--warn-border); }
+.gate-info { background: var(--info-bg); border-color: rgba(59,130,246,.3); }
+.gate-icon  { font-size: 30px; flex-shrink: 0; }
+.gate-title { font-size: 15px; font-weight: 700; }
+.gate-go   .gate-title { color: var(--win); }
+.gate-no   .gate-title { color: var(--loss); }
+.gate-warn .gate-title { color: var(--warn); }
+.gate-info .gate-title { color: var(--brand); }
+.gate-sub   { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+
+/* ====================================================
+   SCORE RING
+   ==================================================== */
+.score-wrap { display: flex; align-items: center; gap: var(--sp-4); }
+.score-ring { position: relative; width: 80px; height: 80px; flex-shrink: 0; }
+.score-ring svg { transform: rotate(-90deg); }
+.ring-bg   { fill: none; stroke: var(--surface-3); stroke-width: 6; }
+.ring-fill { fill: none; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset var(--t-slow); }
+.ring-center {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.ring-num { font-size: 22px; font-weight: 700; font-family: var(--font-mono); color: var(--text-1); line-height: 1; }
+.ring-sub { font-size: 10px; color: var(--text-3); }
+
+/* ====================================================
+   PROGRESS BAR
+   ==================================================== */
+.progress-row { margin-bottom: var(--sp-3); }
+.progress-row:last-child { margin-bottom: 0; }
+.progress-label-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.progress-name  { font-size: 13px; color: var(--text-2); }
+.progress-value { font-size: 13px; font-weight: 600; color: var(--text-1); font-family: var(--font-mono); }
+.progress-track {
+  height: 6px;
+  background: var(--surface-3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width var(--t-slow);
+}
+
+/* ====================================================
+   CHECKLIST — ใช้ native checkbox + label (iOS Safari 100%)
+   ==================================================== */
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 0;
+  border-bottom: 1px solid var(--border);
+}
+.check-item:last-child { border-bottom: none; }
+
+/* label ครอบทั้งแถว — iOS Safari กด label ได้เสมอ */
+.check-item label {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 16px var(--sp-4);
+  width: 100%;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.check-item label:active { background: rgba(255,255,255,0.04); }
+
+/* ซ่อน native checkbox */
+.check-item input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0; height: 0;
+  pointer-events: none;
+}
+
+/* custom checkbox visual */
+.check-box {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  border: 2px solid var(--border-md);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: var(--t-fast);
+  font-size: 14px; color: white;
+  background: var(--surface-2);
+}
+.check-box.checked {
+  background: var(--brand);
+  border-color: var(--brand);
+  box-shadow: 0 0 8px rgba(59,130,246,.4);
+}
+.check-label { font-size: 15px; color: var(--text-2); flex: 1; }
+.check-label.done { color: var(--text-4); text-decoration: line-through; }
+
+/* ====================================================
+   BADGES
+   ==================================================== */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px; font-weight: 600; letter-spacing: .3px;
+}
+.badge-win   { background: var(--win-bg);  color: var(--win);  border: 1px solid var(--win-border); }
+.badge-loss  { background: var(--loss-bg); color: var(--loss); border: 1px solid var(--loss-border); }
+.badge-warn  { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-border); }
+.badge-info  { background: var(--info-bg); color: var(--brand); border: 1px solid rgba(59,130,246,.3); }
+.badge-neutral{ background: var(--surface-2); color: var(--text-3); border: 1px solid var(--border); }
+
+/* ====================================================
+   FORMS
+   ==================================================== */
+.form-group   { margin-bottom: var(--sp-4); }
+.form-label {
+  display: block;
+  font-size: 11px; font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase; letter-spacing: .8px;
+  margin-bottom: var(--sp-2);
+}
+.form-input {
+  width: 100%; padding: 12px var(--sp-3);
+  border: 1.5px solid var(--border-md);
+  border-radius: var(--r-md);
+  font-size: 15px; color: var(--text-1);
+  background: var(--surface-2);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+  outline: none;
+}
+.form-input::placeholder { color: var(--text-4); }
+.form-input:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+  background: var(--surface-3);
+}
+.form-input.error { border-color: var(--loss); }
+.form-select {
+  -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23647A9B' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+.form-select option { background: var(--surface-2); }
+.form-textarea { resize: vertical; min-height: 76px; line-height: 1.6; }
+.form-row   { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--sp-2); }
+.form-error { font-size: 11px; color: var(--loss); margin-top: 4px; }
+.form-hint  { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+
+/* Slider */
+.slider-row { display: flex; align-items: center; gap: var(--sp-3); }
+.slider-val { font-size: 20px; font-weight: 700; color: var(--brand); font-family: var(--font-mono); min-width: 36px; text-align: right; }
+input[type=range] {
+  flex: 1; height: 4px;
+  background: linear-gradient(to right, var(--brand) 0%, var(--brand) var(--pct,50%), var(--surface-3) var(--pct,50%), var(--surface-3) 100%);
+  border-radius: 2px;
+  cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--bg-2);
+  border: 2.5px solid var(--brand);
+  box-shadow: 0 0 8px rgba(59,130,246,.5);
+}
+
+/* Toggle Buttons */
+.toggle-group { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+.toggle-btn {
+  padding: 8px 14px; border-radius: 20px;
+  border: 1.5px solid var(--border-md);
+  font-size: 13px; color: var(--text-3);
+  background: var(--surface-2);
+  transition: var(--t-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+.toggle-btn.active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 0 10px rgba(59,130,246,.3);
+}
+
+/* Emotion Scale */
+.emotion-scale { display: flex; gap: var(--sp-1); }
+.emotion-btn {
+  flex: 1; padding: 8px 4px;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--border-md);
+  background: var(--surface-2);
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  font-size: 11px; color: var(--text-3);
+  transition: var(--t-fast);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.emotion-btn span:first-child { font-size: 22px; }
+.emotion-btn.active {
+  border-color: var(--brand);
+  background: rgba(59,130,246,.15);
+  color: var(--text-1);
+}
+
+/* Tags */
+.tag-wrap { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.tag {
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border-md);
+  font-size: 12px; color: var(--text-3);
+  background: var(--surface-2);
+  cursor: pointer; transition: var(--t-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+.tag.active { background: rgba(239,68,68,.15); border-color: var(--loss); color: var(--loss); font-weight: 600; }
+
+/* ====================================================
+   BUTTONS
+   ==================================================== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  padding: 12px var(--sp-5);
+  border-radius: var(--r-lg);
+  font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: var(--t-mid);
+  -webkit-tap-highlight-color: transparent;
+  border: none; white-space: nowrap;
+}
+.btn:active { transform: scale(.96); }
+.btn-primary {
+  background: var(--brand);
+  color: white;
+  box-shadow: 0 4px 16px rgba(59,130,246,.35);
+}
+.btn-primary:active { background: var(--brand-dark); }
+.btn-secondary {
+  background: var(--surface-2);
+  color: var(--text-2);
+  border: 1px solid var(--border-md);
+}
+.btn-danger {
+  background: var(--loss-bg);
+  color: var(--loss);
+  border: 1px solid var(--loss-border);
+}
+.btn-full { width: 100%; }
+.btn-sm { padding: 9px var(--sp-4); font-size: 13px; }
+
+/* ====================================================
+   STEP FORM (Step-by-Step modal)
+   ==================================================== */
+.step-progress {
+  display: flex; gap: var(--sp-2); margin-bottom: var(--sp-5);
+  padding: 0 var(--sp-1);
+}
+.step-dot {
+  flex: 1; height: 3px; border-radius: 2px;
+  background: var(--surface-3);
+  transition: background var(--t-mid);
+}
+.step-dot.done   { background: var(--win); }
+.step-dot.active { background: var(--brand); }
+
+.step-header { margin-bottom: var(--sp-4); }
+.step-num   { font-size: 11px; color: var(--brand); font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; }
+.step-title { font-size: 17px; font-weight: 800; color: var(--text-1); letter-spacing: -.3px; }
+.step-sub   { font-size: 13px; color: var(--text-3); margin-top: 2px; }
+
+.step-panel { display: none; }
+.step-panel.active { display: block; animation: fadeIn .2s ease; }
+
+.step-nav { display: flex; gap: var(--sp-3); margin-top: var(--sp-5); }
+
+/* ====================================================
+   CHARTS
+   ==================================================== */
+.chart-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  margin: 0 var(--sp-4) var(--sp-3);
+  padding: var(--sp-4);
+}
+.chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--sp-3); }
+.chart-title  { font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; }
+.chart-stat   { font-size: 13px; font-weight: 600; color: var(--brand); font-family: var(--font-mono); }
+
+/* Stats Row in chart */
+.chart-stats-row { display: flex; gap: var(--sp-3); margin-top: var(--sp-3); }
+.chart-stat-item { flex: 1; background: var(--surface-2); border-radius: var(--r-md); padding: var(--sp-3); text-align: center; }
+.chart-stat-val  { font-size: 16px; font-weight: 700; font-family: var(--font-mono); }
+.chart-stat-lbl  { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+
+/* ====================================================
+   MODALS
+   ==================================================== */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(0,0,0,.75);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: flex-end;
+}
+.modal-overlay.open { display: flex; }
+.modal-sheet {
+  background: var(--bg-2);
+  border: 1px solid var(--border-md);
+  border-radius: var(--r-2xl) var(--r-2xl) 0 0;
+  width: 100%;
+  max-height: 92vh;
+  max-height: 92dvh;
+  overflow-y: auto;
+  box-shadow: 0 -8px 40px rgba(0,0,0,.7);
+  animation: slideUp .3s cubic-bezier(.16,1,.3,1);
+}
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:none} }
+.modal-sheet::-webkit-scrollbar { display: none; }
+.modal-handle {
+  width: 40px; height: 4px;
+  background: var(--surface-4);
+  border-radius: 2px;
+  margin: var(--sp-3) auto var(--sp-2);
+}
+.modal-header {
+  padding: var(--sp-2) var(--sp-4) var(--sp-4);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-title { font-size: 18px; font-weight: 800; color: var(--text-1); }
+.modal-close {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--surface-2); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; cursor: pointer; color: var(--text-3);
+}
+
+/* ====================================================
+   TRADE CARD LIST
+   ==================================================== */
+.trade-item {
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: var(--sp-3);
+  cursor: pointer; transition: var(--t-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+.trade-item:last-child { border-bottom: none; }
+.trade-item:active { background: var(--surface-2); }
+.trade-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  box-shadow: 0 0 6px currentColor;
+}
+.trade-dot.win  { background: var(--win);  color: var(--win); }
+.trade-dot.loss { background: var(--loss); color: var(--loss); }
+.trade-info { flex: 1; min-width: 0; }
+.trade-asset  { font-size: 14px; font-weight: 700; color: var(--text-1); }
+.trade-meta   { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+.trade-right  { text-align: right; }
+.trade-pnl    { font-size: 15px; font-weight: 700; font-family: var(--font-mono); }
+.trade-pnl.pos{ color: var(--win);  }
+.trade-pnl.neg{ color: var(--loss); }
+.trade-r      { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+
+/* ====================================================
+   INSIGHT CARDS
+   ==================================================== */
+.insight-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-3) var(--sp-4);
+  margin-bottom: var(--sp-3);
+  display: flex; gap: var(--sp-3); align-items: flex-start;
+}
+.insight-icon  { font-size: 20px; flex-shrink: 0; }
+.insight-title { font-size: 12px; font-weight: 700; color: var(--text-2); margin-bottom: 3px; }
+.insight-body  { font-size: 13px; color: var(--text-3); line-height: 1.5; }
+
+/* ====================================================
+   REVIEW PERIOD BUTTONS
+   ==================================================== */
+.period-btns { display: flex; gap: var(--sp-2); padding: 0 var(--sp-4) var(--sp-3); }
+.period-btn {
+  padding: 7px 16px; border-radius: 20px;
+  font-size: 13px; font-weight: 600;
+  background: var(--surface-2);
+  border: 1.5px solid var(--border-md);
+  color: var(--text-3);
+  cursor: pointer; transition: var(--t-fast);
+}
+.period-btn.active {
+  background: rgba(59,130,246,.15);
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+/* ====================================================
+   SETTINGS
+   ==================================================== */
+.settings-section { padding: 0 var(--sp-4) var(--sp-3); }
+.settings-label-big { font-size: 11px; font-weight: 700; color: var(--text-3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: var(--sp-3); }
+.settings-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--sp-3) 0;
+  border-bottom: 1px solid var(--border);
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-row-label { font-size: 14px; color: var(--text-1); font-weight: 500; }
+.settings-row-sub   { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.settings-row input[type=number] { width: 70px; text-align: center; padding: 8px; }
+
+/* ====================================================
+   ONBOARDING
+   ==================================================== */
+#onboarding {
+  position: fixed; inset: 0; z-index: 200;
+  background: var(--bg);
+  display: none; flex-direction: column;
+  padding: var(--sp-8) var(--sp-6);
+  overflow-y: auto;
+}
+#onboarding.show {
+  display: flex;
+}
+#onboarding::-webkit-scrollbar { display: none; }
+.ob-logo { font-size: 52px; margin-bottom: var(--sp-5); }
+.ob-title { font-size: 32px; font-weight: 800; color: var(--text-1); letter-spacing: -1px; margin-bottom: var(--sp-3); line-height: 1.2; }
+.ob-sub { font-size: 16px; color: var(--text-3); line-height: 1.7; margin-bottom: var(--sp-6); }
+.ob-feature { display: flex; gap: var(--sp-3); align-items: flex-start; margin-bottom: var(--sp-4); }
+.ob-feature-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+.ob-feature-text { font-size: 14px; color: var(--text-2); line-height: 1.5; }
+.ob-feature-text strong { color: var(--text-1); }
+.ob-spacer { flex: 1; min-height: var(--sp-6); }
+
+/* ====================================================
+   EMPTY STATE
+   ==================================================== */
+.empty-state { padding: var(--sp-10) var(--sp-6); text-align: center; }
+.empty-icon  { font-size: 44px; margin-bottom: var(--sp-3); }
+.empty-title { font-size: 16px; font-weight: 700; color: var(--text-2); margin-bottom: var(--sp-2); }
+.empty-sub   { font-size: 13px; color: var(--text-3); line-height: 1.6; }
+
+/* ====================================================
+   DAILY QUOTE
+   ==================================================== */
+.quote-card {
+  background: linear-gradient(135deg, rgba(59,130,246,.08), rgba(6,182,212,.05));
+  border: 1px solid rgba(59,130,246,.2);
+  border-radius: var(--r-xl);
+  margin: 0 var(--sp-4) var(--sp-3);
+  padding: var(--sp-4) var(--sp-5);
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-2);
+  font-style: italic;
+  position: relative;
+}
+.quote-card::before { content: '"'; font-size: 36px; color: var(--brand); opacity: .3; position: absolute; top: 4px; left: 12px; line-height: 1; }
+.quote-card p { padding-left: var(--sp-4); }
+
+/* ====================================================
+   ALERT BANNER
+   ==================================================== */
+.alert-banner {
+  margin: 0 var(--sp-4) var(--sp-3);
+  border-radius: var(--r-lg);
+  padding: var(--sp-3) var(--sp-4);
+  font-size: 13px; font-weight: 600;
+  display: none;
+}
+.alert-banner.show { display: flex; align-items: center; gap: var(--sp-2); }
+.alert-warn { background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn); }
+.alert-danger { background: var(--loss-bg); border: 1px solid var(--loss-border); color: var(--loss); }
+
+/* ====================================================
+   RR DISPLAY
+   ==================================================== */
+.rr-display {
+  border-radius: var(--r-md);
+  padding: var(--sp-3) var(--sp-4);
+  margin-bottom: var(--sp-4);
+  display: none;
+}
+.rr-display.show { display: block; }
+.rr-display.good { background: var(--win-bg); border: 1px solid var(--win-border); }
+.rr-display.bad  { background: var(--loss-bg); border: 1px solid var(--loss-border); }
+.rr-row { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; }
+.rr-row .rr-label { color: var(--text-3); }
+.rr-row .rr-val   { font-family: var(--font-mono); color: var(--text-1); }
+
+/* ====================================================
+   CORRELATION TABLE
+   ==================================================== */
+.corr-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.corr-table th { text-align: left; color: var(--text-3); padding: var(--sp-2) var(--sp-3); font-weight: 700; border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+.corr-table td { padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--border); color: var(--text-2); }
+.corr-table tr:last-child td { border-bottom: none; }
+
+/* ====================================================
+   STREAK BADGE
+   ==================================================== */
+.streak-card {
+  background: linear-gradient(135deg, rgba(245,158,11,.1), rgba(251,191,36,.05));
+  border: 1px solid rgba(245,158,11,.25);
+  border-radius: var(--r-lg);
+  padding: var(--sp-3) var(--sp-4);
+  display: flex; align-items: center; gap: var(--sp-3);
+}
+.streak-num { font-size: 32px; font-weight: 800; font-family: var(--font-mono); color: var(--gold); line-height: 1; }
+.streak-label { font-size: 13px; color: var(--text-3); margin-top: 2px; }
+
+/* ====================================================
+   GATE MINI ITEMS
+   ==================================================== */
+.gate-item {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px; color: var(--text-3);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none; -webkit-user-select: none;
+  transition: background var(--t-fast);
+}
+.gate-item:active { background: rgba(255,255,255,0.04); }
+.gate-item:last-child { border-bottom: none; }
+.gate-item.pass { color: var(--text-2); }
+.gate-check-icon { font-size: 20px; flex-shrink: 0; pointer-events: none; }
+.gate-item-text  { flex: 1; pointer-events: none; }
+
+/* ====================================================
+   ALIGN SCORE
+   ==================================================== */
+.align-row {
+  display: flex; gap: var(--sp-3); align-items: center;
+  padding: var(--sp-3) 0;
+  border-bottom: 1px solid var(--border);
+}
+.align-row:last-child { border-bottom: none; }
+.align-icon  { font-size: 18px; flex-shrink: 0; }
+.align-label { flex: 1; font-size: 13px; color: var(--text-2); }
+.align-score { font-size: 14px; font-weight: 700; font-family: var(--font-mono); }
+.align-bar   { width: 60px; height: 4px; background: var(--surface-3); border-radius: 2px; overflow: hidden; }
+.align-bar-fill { height: 100%; border-radius: 2px; }
+
+/* ====================================================
+   ANIMATIONS
+   ==================================================== */
+.animate-in { animation: slideInUp .3s ease both; }
+.animate-in:nth-child(1){ animation-delay:.05s }
+.animate-in:nth-child(2){ animation-delay:.1s }
+.animate-in:nth-child(3){ animation-delay:.15s }
+.animate-in:nth-child(4){ animation-delay:.2s }
+@keyframes slideInUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+
+/* ====================================================
+   TOAST
+   ==================================================== */
+#toast {
+  position: fixed; bottom: 96px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--surface-3);
+  border: 1px solid var(--border-md);
+  color: var(--text-1);
+  padding: 10px 20px;
+  border-radius: 24px;
+  font-size: 14px; font-weight: 600;
+  z-index: 9999; opacity: 0;
+  pointer-events: none;
+  transition: all 300ms cubic-bezier(.16,1,.3,1);
+  white-space: nowrap;
+  box-shadow: var(--shadow-lg);
+  max-width: 90vw; text-align: center;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ====================================================
+   SAMPLE DATA TOGGLE
+   ==================================================== */
+.demo-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--sp-3) var(--sp-4);
+  background: rgba(245,158,11,.08);
+  border-bottom: 1px solid rgba(245,158,11,.2);
+  font-size: 12px;
+}
+.demo-badge { background: var(--gold-glow); color: var(--gold); padding: 2px 8px; border-radius: 10px; font-weight: 700; font-size: 10px; }
+
+/* ====================================================
+   CHECKLIST COMPLETE BANNER
+   ==================================================== */
+.checklist-complete {
+  background: var(--win-bg);
+  border: 1px solid var(--win-border);
+  border-radius: var(--r-md);
+  padding: var(--sp-3);
+  text-align: center;
+  font-size: 13px; font-weight: 600; color: var(--win);
+  display: none;
+  margin-top: var(--sp-2);
+}
+.checklist-complete.show { display: block; }
+
+/* ====================================================
+   EXPORT SECTION
+   ==================================================== */
+.export-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); padding: 0 var(--sp-4) var(--sp-4); }
+.export-btn {
+  background: var(--surface-2);
+  border: 1px solid var(--border-md);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4);
+  text-align: center; cursor: pointer;
+  transition: var(--t-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+.export-btn:active { transform: scale(.95); background: var(--surface-3); }
+.export-btn-icon { font-size: 24px; margin-bottom: var(--sp-2); }
+.export-btn-label { font-size: 12px; font-weight: 600; color: var(--text-2); }
+.export-btn-sub { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+
+/* ====================================================
+   RESPONSIVE DESKTOP CENTERING
+   ==================================================== */
+@media (min-width: 480px) {
+  #onboarding { max-width: 480px; margin: 0 auto; }
+}
+
+/* ====================================================
+   FIREBASE AUTH UI
+   ==================================================== */
+#loginScreen {
+  position: fixed; inset: 0; z-index: 300;
+  background: var(--bg);
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: var(--sp-8);
+  text-align: center;
+}
+#loginScreen.show { display: flex; }
+.login-logo { font-size: 56px; margin-bottom: var(--sp-4); }
+.login-title { font-size: 26px; font-weight: 800; color: var(--text-1); letter-spacing: -1px; margin-bottom: var(--sp-2); }
+.login-sub { font-size: 14px; color: var(--text-3); margin-bottom: var(--sp-8); line-height: 1.6; }
+.btn-google {
+  display: flex; align-items: center; justify-content: center; gap: var(--sp-3);
+  width: 100%; padding: 14px var(--sp-6);
+  background: white; color: #1a1a1a;
+  border: none; border-radius: var(--r-lg);
+  font-size: 15px; font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0,0,0,.4);
+  transition: var(--t-mid);
+  touch-action: manipulation;
+}
+.btn-google:active { transform: scale(.97); }
+.btn-google svg { flex-shrink: 0; }
+.btn-anonymous {
+  margin-top: var(--sp-3);
+  background: transparent;
+  color: var(--text-3);
+  border: 1px solid var(--border-md);
+  border-radius: var(--r-lg);
+  padding: 12px var(--sp-6);
+  font-size: 13px; font-weight: 600;
+  width: 100%; cursor: pointer;
+  touch-action: manipulation;
+  transition: var(--t-fast);
+}
+.btn-anonymous:active { background: var(--surface-2); }
+.login-note { font-size: 11px; color: var(--text-4); margin-top: var(--sp-4); line-height: 1.6; }
+
+/* User avatar in top bar */
+.user-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand), var(--cyan));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: white;
+  cursor: pointer; overflow: hidden; flex-shrink: 0;
+  border: 2px solid rgba(59,130,246,.4);
+}
+.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Sync indicator */
+.sync-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  position: absolute; bottom: 0; right: 0;
+  border: 2px solid var(--bg-2);
+}
+.sync-dot.synced  { background: var(--win); }
+.sync-dot.syncing { background: var(--gold); animation: pulse 1s infinite; }
+.sync-dot.offline { background: var(--text-4); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* Profile Modal */
+.profile-info { text-align: center; padding: var(--sp-6) var(--sp-4) var(--sp-4); }
+.profile-avatar-lg {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand), var(--cyan));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; font-weight: 700; color: white;
+  margin: 0 auto var(--sp-3);
+  border: 3px solid rgba(59,130,246,.4);
+  overflow: hidden;
+}
+.profile-avatar-lg img { width: 100%; height: 100%; object-fit: cover; }
+.profile-name { font-size: 18px; font-weight: 700; color: var(--text-1); }
+.profile-email { font-size: 13px; color: var(--text-3); margin-top: 4px; }
+.profile-badge { display: inline-block; margin-top: var(--sp-2); padding: 3px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; background: var(--win-bg); color: var(--win); border: 1px solid var(--win-border); }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     LOGIN SCREEN — Firebase Auth
+     ============================================================ -->
+<div id="loginScreen">
+  <div class="login-logo">⚡</div>
+  <div class="login-title">Personal OS</div>
+  <div class="login-sub">ระบบชีวิต + เทรด + วินัย<br>เข้าสู่ระบบเพื่อซิงค์ข้อมูลทุก device</div>
+
+  <button class="btn-google" onclick="loginWithGoogle()">
+    <svg width="20" height="20" viewBox="0 0 48 48">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+    </svg>
+    เข้าสู่ระบบด้วย Google
+  </button>
+
+  <div class="login-note">
+    🔒 ข้อมูลของคุณเข้ารหัสและเก็บใน Firestore<br>
+    ไม่มีใครเข้าถึงได้นอกจากคุณ · Sync ทุก device อัตโนมัติ
+  </div>
+
+  <!-- ฟีเจอร์ preview -->
+  <div style="margin-top: var(--sp-6); width: 100%; display:flex; flex-direction:column; gap: var(--sp-2);">
+    <div style="display:flex; gap:var(--sp-3); align-items:center; background:rgba(255,255,255,.04); border-radius:var(--r-md); padding:var(--sp-3);">
+      <span style="font-size:20px;">🔄</span>
+      <div style="font-size:13px; color:var(--text-2);">Sync real-time ทั้งโทรศัพท์และคอม</div>
+    </div>
+    <div style="display:flex; gap:var(--sp-3); align-items:center; background:rgba(255,255,255,.04); border-radius:var(--r-md); padding:var(--sp-3);">
+      <span style="font-size:20px;">☁️</span>
+      <div style="font-size:13px; color:var(--text-2);">ข้อมูลปลอดภัยใน Firebase Cloud</div>
+    </div>
+    <div style="display:flex; gap:var(--sp-3); align-items:center; background:rgba(255,255,255,.04); border-radius:var(--r-md); padding:var(--sp-3);">
+      <span style="font-size:20px;">📱</span>
+      <div style="font-size:13px; color:var(--text-2);">ใช้งานได้ offline · sync เมื่อมี internet</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     ONBOARDING SCREEN
+     ============================================================ -->
+<div id="onboarding">
+  <div class="ob-logo">⚡</div>
+  <div class="ob-title">Personal OS<br>v3.0</div>
+  <div class="ob-sub">ระบบชีวิต + เทรด + วินัย<br>ออกแบบเพื่อคนที่อยากเปลี่ยนแปลงตัวเองจากภายใน</div>
+
+  <div class="ob-feature">
+    <span class="ob-feature-icon">🚦</span>
+    <span class="ob-feature-text"><strong>Pre-Trade Gate System</strong> — ตรวจสอบ 8 เงื่อนไขก่อนทุกไม้ ป้องกัน FOMO และ Revenge Trade</span>
+  </div>
+  <div class="ob-feature">
+    <span class="ob-feature-icon">🧘</span>
+    <span class="ob-feature-text"><strong>Life Check-in แบบ Step-by-Step</strong> — กรอกง่ายบนมือถือ ติดตามพลังงาน ความนิ่ง และวินัยชีวิต</span>
+  </div>
+  <div class="ob-feature">
+    <span class="ob-feature-icon">📊</span>
+    <span class="ob-feature-text"><strong>Analytics ครบจบ</strong> — Win Rate, Expectancy, R-Multiple, Equity Curve, Correlation Analysis</span>
+  </div>
+  <div class="ob-feature">
+    <span class="ob-feature-icon">🎯</span>
+    <span class="ob-feature-text"><strong>Discipline + Alignment Score</strong> — วัดผลวินัยรายวัน และความสอดคล้องระหว่างชีวิตกับการเทรด</span>
+  </div>
+  <div class="ob-feature">
+    <span class="ob-feature-icon">🔄</span>
+    <span class="ob-feature-text"><strong>Review System</strong> — สรุปรายวัน รายสัปดาห์ รายเดือน เรียนรู้และปรับระบบ</span>
+  </div>
+
+  <div class="ob-spacer"></div>
+
+  <div style="margin-top: auto; padding-top: var(--sp-6);">
+    <button class="btn btn-primary btn-full" style="font-size:16px; padding:16px; margin-bottom: var(--sp-3);" onclick="startApp()">
+      เริ่มใช้งาน →
+    </button>
+    <button class="btn btn-secondary btn-full btn-sm" onclick="loadSampleData(); startApp()">
+      ลองใช้ข้อมูลตัวอย่างก่อน
+    </button>
+  </div>
+  <div style="height: env(safe-area-inset-bottom, 16px);"></div>
+</div>
+
+<!-- ============================================================
+     MAIN APP
+     ============================================================ -->
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="top-bar-brand">
+      <div class="brand-logo">OS</div>
+      <div>
+        <div class="brand-name">Personal OS</div>
+        <div class="brand-sub" id="topBarDate">—</div>
+      </div>
+    </div>
+    <div class="top-bar-actions">
+      <button class="icon-btn" onclick="openModal('settingsModal')" title="ตั้งค่า">⚙️</button>
+      <div onclick="openModal('profileModal')" style="position:relative;cursor:pointer;" title="โปรไฟล์">
+        <div class="user-avatar" id="userAvatar">?</div>
+        <div class="sync-dot offline" id="syncDot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEMO BANNER (when using sample data) -->
+  <div id="demoBanner" class="demo-toggle" style="display:none;">
+    <span>🎭 กำลังดูข้อมูลตัวอย่าง</span>
+    <div style="display:flex; gap: var(--sp-2); align-items:center;">
+      <span class="demo-badge">DEMO</span>
+      <button class="btn btn-danger btn-sm" style="padding:4px 10px; font-size:11px;" onclick="clearDemoData()">ล้างข้อมูล</button>
+    </div>
+  </div>
+
+  <!-- SCROLL AREA -->
+  <div class="scroll-area" id="mainScrollArea">
+
+    <!-- ==============================
+         PAGE: HOME (Dashboard)
+         ============================== -->
+    <div class="page active" id="pageHome">
+
+      <div class="page-header" style="padding-bottom: var(--sp-2);">
+        <div>
+          <div class="page-title" id="homeGreeting">สวัสดี 👋</div>
+          <div class="page-sub" id="homeSubtitle">Personal OS — ระบบชีวิต</div>
+        </div>
+      </div>
+
+      <!-- GATE STATUS -->
+      <div id="gateStatus" class="gate-card gate-warn">
+        <div class="gate-icon">⚡</div>
+        <div>
+          <div class="gate-title">รอทำ Daily Check-in</div>
+          <div class="gate-sub">กด "Life" เพื่อกรอกสภาพวันนี้ก่อน</div>
+        </div>
+      </div>
+
+      <!-- CHECKLIST ALERT -->
+      <div id="checklistAlert" class="alert-banner alert-warn">
+        ⚠️ <span id="checklistAlertText">Checklist ยังไม่ครบ — กรุณาทำให้ครบก่อนเทรด</span>
+      </div>
+
+      <!-- HERO CARD -->
+      <div class="card hero-card">
+        <div class="hero-date" id="heroDate">—</div>
+        <div class="hero-title">ภาพรวมวันนี้</div>
+        <div class="hero-stats">
+          <div>
+            <div class="hero-stat-val neu" id="homeTrades">0</div>
+            <div class="hero-stat-label">จำนวนไม้</div>
+          </div>
+          <div>
+            <div class="hero-stat-val neu" id="homeWinRate">—%</div>
+            <div class="hero-stat-label">Win Rate</div>
+          </div>
+          <div>
+            <div class="hero-stat-val neu" id="homePnl">$0</div>
+            <div class="hero-stat-label">P/L วันนี้</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- METRIC GRID -->
+      <div class="metric-grid">
+        <div class="metric-card animate-in">
+          <div class="metric-icon">🎯</div>
+          <div class="metric-val" id="metricDiscipline">—</div>
+          <div class="metric-label">Discipline Score</div>
+          <div class="metric-badge mb-info" id="metricDisciplineBadge">ยังไม่มีข้อมูล</div>
+        </div>
+        <div class="metric-card animate-in">
+          <div class="metric-icon">🔗</div>
+          <div class="metric-val" id="metricAlign">—</div>
+          <div class="metric-label">Alignment Score</div>
+          <div class="metric-badge mb-info" id="metricAlignBadge">ชีวิต↔เทรด</div>
+        </div>
+        <div class="metric-card animate-in">
+          <div class="metric-icon">⚡</div>
+          <div class="metric-val" id="metricEnergy">—</div>
+          <div class="metric-label">พลังงานวันนี้</div>
+          <div class="metric-badge mb-info" id="metricEnergyBadge">—</div>
+        </div>
+        <div class="metric-card animate-in">
+          <div class="metric-icon">🔥</div>
+          <div class="metric-val" id="metricStreak">0</div>
+          <div class="metric-label">วันต่อเนื่อง</div>
+          <div class="metric-badge mb-win">Streak</div>
+        </div>
+      </div>
+
+      <!-- DAILY CHECKLIST -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Daily Checklist</span>
+          <span class="card-action" id="checklistScore">0/6</span>
+        </div>
+        <div id="dailyChecklist"></div>
+        <div class="checklist-complete" id="checklistComplete">✅ ครบแล้ว! พร้อมเทรดวันนี้</div>
+      </div>
+
+      <!-- QUOTE -->
+      <div class="quote-card">
+        <p id="dailyQuote">ระบบที่ดีคือเกราะป้องกันอารมณ์ ไม่ใช่กรงที่กักขังอิสรภาพ</p>
+      </div>
+
+      <!-- RECENT TRADES -->
+      <div class="card" style="padding: 0; overflow: hidden;">
+        <div class="card-header" style="padding: var(--sp-3) var(--sp-4); margin-bottom: 0; border-bottom: 1px solid var(--border);">
+          <span class="card-title">เทรดล่าสุด</span>
+          <span class="card-action" onclick="switchPage('pageJournal','nav-journal')">ดูทั้งหมด →</span>
+        </div>
+        <div id="homeTrades_list">
+          <div class="empty-state" style="padding: var(--sp-6) 0;">
+            <div style="font-size:32px;">📋</div>
+            <div style="font-size:13px; color: var(--text-3); margin-top: var(--sp-2);">ยังไม่มีข้อมูลการเทรด</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MINI EQUITY -->
+      <div class="chart-wrap">
+        <div class="chart-header">
+          <span class="chart-title">📈 Equity Curve (30 วัน)</span>
+          <span class="chart-stat" id="equityMiniStat">—</span>
+        </div>
+        <canvas id="equityMiniChart" height="80"></canvas>
+      </div>
+
+    </div><!-- /pageHome -->
+
+    <!-- ==============================
+         PAGE: LIFE CHECK-IN (Step-by-Step)
+         ============================== -->
+    <div class="page" id="pageLife">
+
+      <div class="page-header">
+        <div>
+          <div class="page-title">🧘 Life Check-in</div>
+          <div class="page-sub" id="lifeCheckinStatus">กรอกสภาพวันนี้ — ใช้เวลา ~2 นาที</div>
+        </div>
+      </div>
+
+      <!-- STEP PROGRESS -->
+      <div style="padding: 0 var(--sp-4) var(--sp-2);">
+        <div class="step-progress" id="lifeStepProgress">
+          <div class="step-dot active" id="lsp1"></div>
+          <div class="step-dot" id="lsp2"></div>
+          <div class="step-dot" id="lsp3"></div>
+          <div class="step-dot" id="lsp4"></div>
+        </div>
+      </div>
+
+      <!-- STEP 1: ร่างกาย -->
+      <div class="card step-panel active" id="lifeStep1">
+        <div class="step-header">
+          <div class="step-num">ขั้นตอน 1 จาก 4</div>
+          <div class="step-title">💪 ร่างกายวันนี้</div>
+          <div class="step-sub">นอน พลังงาน ความแข็งแรง</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">นอนกี่ชั่วโมง</label>
+          <div class="slider-row">
+            <input type="range" min="3" max="12" value="7" step="0.5"
+              oninput="updateSlider(this,'sleepVal')" id="sleepHours">
+            <div class="slider-val" id="sleepVal">7</div>
+          </div>
+          <div class="form-hint">เป้าหมาย: 7-9 ชั่วโมง</div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">พลังงานวันนี้</label>
+          <div class="emotion-scale" id="energyScale">
+            <button class="emotion-btn" onclick="setScale(this,'energyScale','energy',2)"><span>😫</span><span>หมดแรง</span></button>
+            <button class="emotion-btn" onclick="setScale(this,'energyScale','energy',4)"><span>😔</span><span>น้อย</span></button>
+            <button class="emotion-btn active" onclick="setScale(this,'energyScale','energy',6)"><span>😐</span><span>พอไหว</span></button>
+            <button class="emotion-btn" onclick="setScale(this,'energyScale','energy',8)"><span>😊</span><span>ดี</span></button>
+            <button class="emotion-btn" onclick="setScale(this,'energyScale','energy',10)"><span>🔥</span><span>พุ่งสุด</span></button>
+          </div>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn btn-primary btn-full" onclick="lifeStepNext(1)">ถัดไป →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: จิตใจ -->
+      <div class="card step-panel" id="lifeStep2">
+        <div class="step-header">
+          <div class="step-num">ขั้นตอน 2 จาก 4</div>
+          <div class="step-title">🧠 จิตใจวันนี้</div>
+          <div class="step-sub">ความนิ่ง ความชัดเจน สมาธิ</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">ความนิ่งของใจวันนี้</label>
+          <div class="emotion-scale" id="calmScale">
+            <button class="emotion-btn" onclick="setScale(this,'calmScale','calm',2)"><span>🌊</span><span>ฟุ้งมาก</span></button>
+            <button class="emotion-btn" onclick="setScale(this,'calmScale','calm',4)"><span>💭</span><span>ฟุ้งนิด</span></button>
+            <button class="emotion-btn active" onclick="setScale(this,'calmScale','calm',6)"><span>😌</span><span>พอนิ่ง</span></button>
+            <button class="emotion-btn" onclick="setScale(this,'calmScale','calm',8)"><span>🧘</span><span>นิ่งดี</span></button>
+            <button class="emotion-btn" onclick="setScale(this,'calmScale','calm',10)"><span>⚡</span><span>นิ่งมาก</span></button>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">วันนี้ขับชีวิตตัวเองได้ไหม?</label>
+          <div class="toggle-group" id="selfDriveToggle">
+            <button class="toggle-btn active" onclick="selectToggle('selfDriveToggle',this,'driven')">✅ ขับชีวิตได้</button>
+            <button class="toggle-btn" onclick="selectToggle('selfDriveToggle',this,'drift')">🌊 ปล่อยไหล</button>
+            <button class="toggle-btn" onclick="selectToggle('selfDriveToggle',this,'mixed')">↔️ ผสม</button>
+          </div>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn btn-secondary" style="flex:1;" onclick="lifeStepPrev(2)">← กลับ</button>
+          <button class="btn btn-primary" style="flex:2;" onclick="lifeStepNext(2)">ถัดไป →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: กิจกรรม -->
+      <div class="card step-panel" id="lifeStep3">
+        <div class="step-header">
+          <div class="step-num">ขั้นตอน 3 จาก 4</div>
+          <div class="step-title">✅ กิจกรรมวันนี้</div>
+          <div class="step-sub">ติ๊กสิ่งที่ทำวันนี้</div>
+        </div>
+        <div id="lifeChecklist"></div>
+
+        <div class="form-group" style="margin-top: var(--sp-4); margin-bottom:0;">
+          <label class="form-label">Deep Work วันนี้ (ชั่วโมง)</label>
+          <div class="slider-row">
+            <input type="range" min="0" max="8" value="2" step="0.5"
+              oninput="updateSlider(this,'deepWorkVal')" id="deepWorkHours">
+            <div class="slider-val" id="deepWorkVal">2</div>
+          </div>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn btn-secondary" style="flex:1;" onclick="lifeStepPrev(3)">← กลับ</button>
+          <button class="btn btn-primary" style="flex:2;" onclick="lifeStepNext(3)">ถัดไป →</button>
+        </div>
+      </div>
+
+      <!-- STEP 4: บันทึก -->
+      <div class="card step-panel" id="lifeStep4">
+        <div class="step-header">
+          <div class="step-num">ขั้นตอน 4 จาก 4 — สุดท้ายแล้ว!</div>
+          <div class="step-title">📝 บันทึกประจำวัน</div>
+          <div class="step-sub">สรุปสั้น ๆ เพื่อการเรียนรู้</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">หมายเหตุวันนี้ (ไม่บังคับ)</label>
+          <textarea class="form-input form-textarea" id="lifeDayNote" placeholder="สิ่งที่รู้สึก สิ่งที่เรียนรู้ หรือ loop ที่ยังค้างอยู่..."></textarea>
+        </div>
+
+        <!-- SCORES PREVIEW -->
+        <div style="background: var(--surface-2); border-radius: var(--r-lg); padding: var(--sp-3); margin-bottom: var(--sp-4);">
+          <div style="font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .8px; margin-bottom: var(--sp-3);">คะแนนวันนี้ (ตัวอย่าง)</div>
+          <div class="align-row">
+            <div class="align-icon">🎯</div>
+            <div class="align-label">Discipline Score</div>
+            <div class="align-score" id="previewDiscipline" style="color: var(--brand);">—</div>
+          </div>
+          <div class="align-row">
+            <div class="align-icon">🔗</div>
+            <div class="align-label">Alignment Score</div>
+            <div class="align-score" id="previewAlign" style="color: var(--teal);">—</div>
+          </div>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn btn-secondary" style="flex:1;" onclick="lifeStepPrev(4)">← กลับ</button>
+          <button class="btn btn-primary" style="flex:2;" onclick="saveLifeCheckin()">💾 บันทึกวันนี้</button>
+        </div>
+      </div>
+
+      <!-- 7-DAY HISTORY -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">7 วันที่ผ่านมา</span></div>
+        <div class="progress-row">
+          <div class="progress-label-row">
+            <span class="progress-name">🎯 วินัยเฉลี่ย</span>
+            <span class="progress-value" id="avgDiscipline">—</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="pbDiscipline" style="width:0%; background: var(--brand);"></div></div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-label-row">
+            <span class="progress-name">⚡ พลังงานเฉลี่ย</span>
+            <span class="progress-value" id="avgEnergy">—</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="pbEnergy" style="width:0%; background: var(--cyan);"></div></div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-label-row">
+            <span class="progress-name">🧘 ความนิ่งเฉลี่ย</span>
+            <span class="progress-value" id="avgCalm">—</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="pbCalm" style="width:0%; background: var(--teal);"></div></div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-label-row">
+            <span class="progress-name">🔗 Alignment เฉลี่ย</span>
+            <span class="progress-value" id="avgAlign">—</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="pbAlign" style="width:0%; background: var(--gold);"></div></div>
+        </div>
+      </div>
+
+    </div><!-- /pageLife -->
+
+    <!-- ==============================
+         PAGE: TRADING JOURNAL
+         ============================== -->
+    <div class="page" id="pageJournal">
+
+      <div class="page-header">
+        <div>
+          <div class="page-title">📊 Journal</div>
+          <div class="page-sub">บันทึกทุกไม้ วิเคราะห์ทุก pattern</div>
+        </div>
+      </div>
+
+      <div style="padding: 0 var(--sp-4) var(--sp-3); display: flex; gap: var(--sp-2);">
+        <button class="btn btn-primary" style="flex:1;" onclick="openModal('tradeModal')">+ บันทึกเทรด</button>
+        <button class="btn btn-secondary btn-sm" onclick="openModal('filterModal')">🔍 Filter</button>
+      </div>
+
+      <!-- JOURNAL STATS -->
+      <div class="metric-grid" style="margin-bottom: var(--sp-2);">
+        <div class="metric-card">
+          <div class="metric-icon">🏆</div>
+          <div class="metric-val" id="jWinRate">—</div>
+          <div class="metric-label">Win Rate</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon">📐</div>
+          <div class="metric-val" id="jAvgR">—</div>
+          <div class="metric-label">Avg R-Multiple</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon">💰</div>
+          <div class="metric-val" id="jTotalPnl">$0</div>
+          <div class="metric-label">P/L รวม</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon">🎯</div>
+          <div class="metric-val" id="jExpectancy">—</div>
+          <div class="metric-label">Expectancy</div>
+        </div>
+      </div>
+
+      <!-- TRADE LIST -->
+      <div class="card" style="padding: 0; overflow: hidden;">
+        <div style="padding: var(--sp-3) var(--sp-4); border-bottom: 1px solid var(--border);">
+          <span class="card-title">ประวัติการเทรด</span>
+        </div>
+        <div id="tradeList">
+          <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <div class="empty-title">ยังไม่มีข้อมูลการเทรด</div>
+            <div class="empty-sub">กดปุ่ม "บันทึกเทรด" ด้านบน<br>เพื่อเริ่มบันทึกระบบเทรดของคุณ</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /pageJournal -->
+
+    <!-- ==============================
+         PAGE: ANALYTICS
+         ============================== -->
+    <div class="page" id="pageAnalytics">
+
+      <div class="page-header">
+        <div>
+          <div class="page-title">📈 Analytics</div>
+          <div class="page-sub">เห็นพัฒนาการจริง วัดผลได้จริง</div>
+        </div>
+      </div>
+
+      <!-- PERIOD SELECTOR -->
+      <div class="period-btns">
+        <button class="period-btn active" onclick="setAnalyticsPeriod('week',this)">7 วัน</button>
+        <button class="period-btn" onclick="setAnalyticsPeriod('month',this)">30 วัน</button>
+        <button class="period-btn" onclick="setAnalyticsPeriod('all',this)">ทั้งหมด</button>
+      </div>
+
+      <!-- KEY METRICS -->
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="metric-icon">🏆</div>
+          <div class="metric-val" id="aWinRate">—</div>
+          <div class="metric-label">Win Rate</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon">📐</div>
+          <div class="metric-val" id="aAvgR">—</div>
+          <div class="metric-label">Avg R-Multiple</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon">💰</div>
+          <div class="metric-val" id="aTotalPnl">$0</div>
+          <div class="metric-label">Total P/L</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon">📊</div>
+          <div class="metric-val" id="aExpectancy">—</div>
+          <div class="metric-label">Expectancy/R</div>
+        </div>
+      </div>
+
+      <!-- EQUITY CURVE -->
+      <div class="chart-wrap">
+        <div class="chart-header">
+          <span class="chart-title">📈 Equity Curve</span>
+          <span class="chart-stat" id="equityChange">—</span>
+        </div>
+        <canvas id="equityChart" height="140"></canvas>
+        <div class="chart-stats-row">
+          <div class="chart-stat-item">
+            <div class="chart-stat-val" id="aBestDay" style="color: var(--win);">—</div>
+            <div class="chart-stat-lbl">Best Day</div>
+          </div>
+          <div class="chart-stat-item">
+            <div class="chart-stat-val" id="aWorstDay" style="color: var(--loss);">—</div>
+            <div class="chart-stat-lbl">Worst Day</div>
+          </div>
+          <div class="chart-stat-item">
+            <div class="chart-stat-val" id="aTotalTrades" style="color: var(--brand);">—</div>
+            <div class="chart-stat-lbl">Total Trades</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WIN/LOSS DISTRIBUTION -->
+      <div class="chart-wrap">
+        <div class="chart-header">
+          <span class="chart-title">🎯 Win Rate & R-Distribution</span>
+        </div>
+        <canvas id="wlChart" height="120"></canvas>
+      </div>
+
+      <!-- MISTAKE CHART -->
+      <div class="chart-wrap">
+        <div class="chart-header">
+          <span class="chart-title">⚠️ ความผิดพลาดบ่อยที่สุด</span>
+        </div>
+        <canvas id="mistakeChart" height="120"></canvas>
+      </div>
+
+      <!-- DISCIPLINE vs TRADE -->
+      <div class="chart-wrap">
+        <div class="chart-header">
+          <span class="chart-title">🧘 วินัยชีวิต vs ผลเทรด (Correlation)</span>
+        </div>
+        <canvas id="correlationChart" height="120"></canvas>
+      </div>
+
+      <!-- CORRELATION TABLE -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">🔍 Correlation Insights</span></div>
+        <table class="corr-table">
+          <thead><tr><th>ตัวแปร</th><th>r</th><th>ข้อสรุป</th></tr></thead>
+          <tbody id="correlationTable">
+            <tr><td colspan="3" style="text-align:center; color: var(--text-3); padding: var(--sp-4);">ยังไม่มีข้อมูลเพียงพอ</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- BEST SETUP ANALYSIS -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">🏅 Setup ที่ดีที่สุด</span></div>
+        <div id="setupAnalysis">
+          <div class="empty-state" style="padding: var(--sp-5) 0;">
+            <div style="font-size:28px;">📊</div>
+            <div style="font-size:13px; color: var(--text-3); margin-top: var(--sp-2);">ต้องการข้อมูลเพิ่มเติม</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /pageAnalytics -->
+
+    <!-- ==============================
+         PAGE: REVIEW SYSTEM
+         ============================== -->
+    <div class="page" id="pageReview">
+
+      <div class="page-header">
+        <div>
+          <div class="page-title">🔄 Review</div>
+          <div class="page-sub">สรุป เรียนรู้ ปรับระบบ</div>
+        </div>
+      </div>
+
+      <!-- PERIOD BUTTONS -->
+      <div class="period-btns">
+        <button class="period-btn active" id="rbDaily" onclick="setReview('daily',this)">วันนี้</button>
+        <button class="period-btn" id="rbWeekly" onclick="setReview('weekly',this)">สัปดาห์</button>
+        <button class="period-btn" id="rbMonthly" onclick="setReview('monthly',this)">เดือน</button>
+      </div>
+
+      <!-- AUTO REVIEW SUMMARY -->
+      <div id="reviewContent"></div>
+
+      <!-- REVIEW FORM -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">✍️ บันทึก Review</span></div>
+
+        <div class="form-group">
+          <label class="form-label">ชนะเพราะอะไร?</label>
+          <textarea class="form-input form-textarea" id="reviewWin" placeholder="setup ไหนที่ทำงานดี อารมณ์นิ่ง ตามระบบ..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">แพ้หรือพลาดเพราะอะไร?</label>
+          <textarea class="form-input form-textarea" id="reviewLoss" placeholder="FOMO, รีบเข้า, ไม่ครบ checklist..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">พฤติกรรมที่ต้องแก้</label>
+          <textarea class="form-input form-textarea" id="reviewBehavior" placeholder="Pattern ที่เห็นซ้ำ..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ระบบเริ่มดีขึ้นไหม?</label>
+          <div class="toggle-group" id="systemProgressToggle">
+            <button class="toggle-btn active" onclick="selectToggle('systemProgressToggle',this,'better')">✅ ดีขึ้น</button>
+            <button class="toggle-btn" onclick="selectToggle('systemProgressToggle',this,'same')">↔️ เท่าเดิม</button>
+            <button class="toggle-btn" onclick="selectToggle('systemProgressToggle',this,'worse')">⬇️ แย่ลง</button>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">สิ่งที่จะปรับรอบถัดไป</label>
+          <textarea class="form-input form-textarea" id="reviewNextAction" placeholder="ข้อเสนอแนะเชิงระบบ..."></textarea>
+        </div>
+      </div>
+
+      <div style="padding: 0 var(--sp-4) var(--sp-4);">
+        <button class="btn btn-primary btn-full" onclick="saveReview()">💾 บันทึก Review</button>
+      </div>
+
+    </div><!-- /pageReview -->
+
+  </div><!-- /scroll-area -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="switchPage('pageHome','nav-home')">
+      <div class="nav-icon">🏠</div><div class="nav-label">หน้าหลัก</div>
+    </div>
+    <div class="nav-item" id="nav-life" onclick="switchPage('pageLife','nav-life')">
+      <div class="nav-icon">🧘</div><div class="nav-label">Life</div>
+    </div>
+    <div class="nav-item" id="nav-journal" onclick="switchPage('pageJournal','nav-journal')">
+      <div class="nav-icon">📊</div><div class="nav-label">Journal</div>
+    </div>
+    <div class="nav-item" id="nav-analytics" onclick="switchPage('pageAnalytics','nav-analytics')">
+      <div class="nav-icon">📈</div><div class="nav-label">Analytics</div>
+    </div>
+    <div class="nav-item" id="nav-review" onclick="switchPage('pageReview','nav-review')">
+      <div class="nav-icon">🔄</div><div class="nav-label">Review</div>
+    </div>
+  </nav>
+
+</div><!-- /app -->
+
+<!-- ============================================================
+     MODALS
+     ============================================================ -->
+
+<!-- TRADE ENTRY MODAL (Step-by-Step) -->
+<div class="modal-overlay" id="tradeModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="tradeModalTitle">📊 บันทึกการเทรด</div>
+      <div class="modal-close" onclick="closeModal('tradeModal')">✕</div>
+    </div>
+    <div style="padding: 0 var(--sp-4);">
+
+      <!-- STEP PROGRESS BAR -->
+      <div class="step-progress" id="tradeStepProgress">
+        <div class="step-dot active" id="tsp1"></div>
+        <div class="step-dot" id="tsp2"></div>
+        <div class="step-dot" id="tsp3"></div>
+      </div>
+
+      <!-- STEP 1: ข้อมูลพื้นฐาน + Gate -->
+      <div class="step-panel active" id="tradeStep1">
+        <div class="step-header">
+          <div class="step-num">ขั้นตอน 1 จาก 3</div>
+          <div class="step-title">🚦 ประเมินความพร้อม</div>
+          <div class="step-sub">Gate Check + ข้อมูลการเทรด</div>
+        </div>
+
+        <!-- PRE-TRADE GATE -->
+        <div style="background: var(--surface-2); border-radius: var(--r-lg); padding: var(--sp-3) var(--sp-4); margin-bottom: var(--sp-4); border: 1px solid var(--border-md);">
+          <div style="font-size: 12px; font-weight: 700; color: var(--text-3); letter-spacing: .8px; text-transform: uppercase; margin-bottom: var(--sp-3);">🚦 Pre-Trade Gate</div>
+          <div id="gateChecklist"></div>
+          <div id="gateResult" style="margin-top: var(--sp-3);"></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">สินทรัพย์</label>
+            <input type="text" class="form-input" id="tAsset" placeholder="BTC/USDT">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Exchange</label>
+            <input type="text" class="form-input" id="tExchange" placeholder="Binance">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">ทิศทาง</label>
+          <div class="toggle-group" id="tradeDirectionToggle">
+            <button class="toggle-btn active" onclick="selectToggle('tradeDirectionToggle',this,'long')">📈 Long</button>
+            <button class="toggle-btn" onclick="selectToggle('tradeDirectionToggle',this,'short')">📉 Short</button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Timeframe</label>
+            <select class="form-input form-select" id="tTimeframe">
+              <option>15m</option><option>30m</option><option selected>1h</option>
+              <option>4h</option><option>1d</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Setup Type</label>
+            <select class="form-input form-select" id="tSetup">
+              <option>Breakout</option><option>Pullback</option><option>Reversal</option>
+              <option>Range</option><option>Momentum</option><option>Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">แนวโน้มหลัก</label>
+          <div class="toggle-group" id="trendToggle">
+            <button class="toggle-btn" onclick="selectToggle('trendToggle',this,'up')">📈 ขาขึ้น</button>
+            <button class="toggle-btn active" onclick="selectToggle('trendToggle',this,'side')">↔️ Sideways</button>
+            <button class="toggle-btn" onclick="selectToggle('trendToggle',this,'down')">📉 ขาลง</button>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">มีข่าวสำคัญวันนี้?</label>
+          <div class="toggle-group" id="newsToggle">
+            <button class="toggle-btn" onclick="selectToggle('newsToggle',this,'yes')">⚠️ มี</button>
+            <button class="toggle-btn active" onclick="selectToggle('newsToggle',this,'no')">✅ ไม่มี</button>
+          </div>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn btn-secondary" style="flex:1;" onclick="closeModal('tradeModal')">ยกเลิก</button>
+          <button class="btn btn-primary" style="flex:2;" onclick="tradeStepNext(1)">ถัดไป →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: ราคา + R:R Calculator -->
+      <div class="step-panel" id="tradeStep2">
+        <div class="step-header">
+          <div class="step-num">ขั้นตอน 2 จาก 3</div>
+          <div class="step-title">💹 ราคา & คำนวณ R:R</div>
+          <div class="step-sub">ระบบคำนวณ R-Multiple, Risk Amount อัตโนมัติ</div>
+        </div>
+
+        <div class="form-row-3">
+          <div class="form-group">
+            <label class="form-label">Entry</label>
+            <input type="number" class="form-input" id="tEntry" placeholder="0.00" oninput="calcRR()" inputmode="decimal">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Stop Loss</label>
+            <input type="number" class="form-input" id="tSL" placeholder="0.00" oninput="calcRR()" inputmode="decimal">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Take Profit</label>
+            <input type="number" class="form-input" id="tTP" placeholder="0.00" oninput="calcRR()" inputmode="decimal">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">เงินทุน ($)</label>
+            <input type="number" class="form-input" id="tCapital" placeholder="10000" oninput="calcRR()" inputmode="decimal">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Risk % ต่อไม้</label>
+            <input type="number" class="form-input" id="tRiskPct" placeholder="1" oninput="calcRR()" inputmode="decimal">
+          </div>
+        </div>
+
+        <!-- AUTO R:R DISPLAY -->
+        <div class="rr-display" id="rrDisplay">
+          <div class="rr-row">
+            <span class="rr-label">Risk:Reward Ratio</span>
+            <span class="rr-val" id="rrVal">—</span>
+          </div>
+          <div class="rr-row" style="margin-top: var(--sp-2);">
+            <span class="rr-label">Risk Amount ($)</span>
+            <span class="rr-val" id="riskAmount">—</span>
+          </div>
+          <div class="rr-row" style="margin-top: var(--sp-2);">
+            <span class="rr-label">Max Profit ($)</span>
+            <span class="rr-val" id="maxProfitAmount">—</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">อารมณ์ก่อนเข้า</label>
+          <div class="emotion-scale" id="preEmotionScale">
+            <button class="emotion-btn" onclick="setScale(this,'preEmotionScale','preEmotion',2)"><span>😰</span><span>ไม่นิ่ง</span></button>
+            <button class="emotion-btn" onclick="setScale(this,'preEmotionScale','preEmotion',4)"><span>😟</span><span>กังวล</span></button>
+            <button class="emotion-btn active" onclick="setScale(this,'preEmotionScale','preEmotion',6)"><span>😐</span><span>เฉย</span></button>
+            <button class="emotion-btn" onclick="setScale(this,'preEmotionScale','preEmotion',8)"><span>😊</span><span>นิ่งดี</span></button>
+            <button class="emotion-btn" onclick="setScale(this,'preEmotionScale','preEmotion',10)"><span>🧘</span><span>นิ่งมาก</span></button>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">เหตุผลที่เข้า</label>
+          <textarea class="form-input form-textarea" id="tReason" placeholder="เหตุผลเชิง setup ที่ชัดเจน..."></textarea>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn btn-secondary" style="flex:1;" onclick="tradeStepPrev(2)">← กลับ</button>
+          <button class="btn btn-primary" style="flex:2;" onclick="tradeStepNext(2)">ถัดไป →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: ผลลัพธ์ Post-Trade -->
+      <div class="step-panel" id="tradeStep3">
+        <div class="step-header">
+          <div class="step-num">ขั้นตอน 3 จาก 3</div>
+          <div class="step-title">✅ บันทึกผลลัพธ์</div>
+          <div class="step-sub">หลังปิด position แล้ว</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">ราคาออก</label>
+            <input type="number" class="form-input" id="tExit" placeholder="0.00" oninput="calcResult()" inputmode="decimal">
+          </div>
+          <div class="form-group">
+            <label class="form-label">P/L ($) — อัตโนมัติ</label>
+            <input type="number" class="form-input" id="tPnl" placeholder="auto">
+          </div>
+        </div>
+
+        <!-- RESULT AUTO-DISPLAY -->
+        <div id="resultDisplay" style="margin-bottom: var(--sp-4);"></div>
+
+        <div class="form-group">
+          <label class="form-label">ทำตามแผนไหม?</label>
+          <div class="toggle-group" id="followPlanToggle">
+            <button class="toggle-btn active" onclick="selectToggle('followPlanToggle',this,'yes')">✅ ทำตามแผน</button>
+            <button class="toggle-btn" onclick="selectToggle('followPlanToggle',this,'partial')">⚡ บางส่วน</button>
+            <button class="toggle-btn" onclick="selectToggle('followPlanToggle',this,'no')">❌ ไม่ทำตาม</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">อารมณ์หลังออก</label>
+          <div class="emotion-scale" id="postEmotionScale">
+            <button class="emotion-btn" onclick="setScale(this,'postEmotionScale','postEmotion',2)"><span>😤</span><span>โกรธ</span></button>
+            <button class="emotion-btn" onclick="setScale(this,'postEmotionScale','postEmotion',4)"><span>😔</span><span>เสียใจ</span></button>
+            <button class="emotion-btn active" onclick="setScale(this,'postEmotionScale','postEmotion',6)"><span>😐</span><span>เฉย</span></button>
+            <button class="emotion-btn" onclick="setScale(this,'postEmotionScale','postEmotion',8)"><span>😊</span><span>พอใจ</span></button>
+            <button class="emotion-btn" onclick="setScale(this,'postEmotionScale','postEmotion',10)"><span>🎯</span><span>ตามแผน</span></button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tag ความผิดพลาด (ถ้ามี)</label>
+          <div class="tag-wrap" id="mistakeTags">
+            <span class="tag" onclick="toggleTag(this,'FOMO')">FOMO</span>
+            <span class="tag" onclick="toggleTag(this,'Revenge')">Revenge</span>
+            <span class="tag" onclick="toggleTag(this,'Early Exit')">Early Exit</span>
+            <span class="tag" onclick="toggleTag(this,'Late Entry')">Late Entry</span>
+            <span class="tag" onclick="toggleTag(this,'Oversize')">Oversize</span>
+            <span class="tag" onclick="toggleTag(this,'No SL')">No SL</span>
+            <span class="tag" onclick="toggleTag(this,'News Risk')">News Risk</span>
+            <span class="tag" onclick="toggleTag(this,'Overtrade')">Overtrade</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Screenshot / Link</label>
+          <input type="text" class="form-input" id="tScreenshot" placeholder="https://... หรือชื่อไฟล์">
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">บทเรียนจากไม้นี้</label>
+          <textarea class="form-input form-textarea" id="tLesson" placeholder="สิ่งที่จะทำต่างออกไปครั้งหน้า..."></textarea>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn btn-secondary" style="flex:1;" onclick="tradeStepPrev(3)">← กลับ</button>
+          <button class="btn btn-primary" style="flex:2;" onclick="saveTrade()">💾 บันทึก</button>
+        </div>
+      </div>
+
+    </div>
+    <div style="height: var(--sp-6);"></div>
+  </div>
+</div>
+
+<!-- FILTER MODAL -->
+<div class="modal-overlay" id="filterModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">🔍 Filter ข้อมูล</div>
+      <div class="modal-close" onclick="closeModal('filterModal')">✕</div>
+    </div>
+    <div style="padding: 0 var(--sp-4);">
+      <div class="form-group">
+        <label class="form-label">สินทรัพย์</label>
+        <input type="text" class="form-input" id="filterAsset" placeholder="ทั้งหมด">
+      </div>
+      <div class="form-group">
+        <label class="form-label">ผลลัพธ์</label>
+        <div class="toggle-group" id="filterResultToggle">
+          <button class="toggle-btn active" onclick="selectToggle('filterResultToggle',this,'all')">ทั้งหมด</button>
+          <button class="toggle-btn" onclick="selectToggle('filterResultToggle',this,'win')">✅ Win</button>
+          <button class="toggle-btn" onclick="selectToggle('filterResultToggle',this,'loss')">❌ Loss</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mistake Tag</label>
+        <div class="toggle-group" id="filterTagToggle">
+          <button class="toggle-btn active" onclick="selectToggle('filterTagToggle',this,'all')">ทั้งหมด</button>
+          <button class="toggle-btn" onclick="selectToggle('filterTagToggle',this,'FOMO')">FOMO</button>
+          <button class="toggle-btn" onclick="selectToggle('filterTagToggle',this,'Revenge')">Revenge</button>
+          <button class="toggle-btn" onclick="selectToggle('filterTagToggle',this,'Early Exit')">Early Exit</button>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="applyFilter(); closeModal('filterModal')">Apply Filter</button>
+      <div style="height: var(--sp-2);"></div>
+      <button class="btn btn-secondary btn-full" onclick="resetFilter(); closeModal('filterModal')">Reset Filter</button>
+    </div>
+    <div style="height: var(--sp-6);"></div>
+  </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div class="modal-overlay" id="profileModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">👤 โปรไฟล์</div>
+      <div class="modal-close" onclick="closeModal('profileModal')">✕</div>
+    </div>
+
+    <!-- User Info -->
+    <div class="profile-info" id="profileInfo">
+      <div class="profile-avatar-lg" id="profileAvatarLg">?</div>
+      <div class="profile-name" id="profileName">ไม่ได้ Login</div>
+      <div class="profile-email" id="profileEmail">ข้อมูลเก็บใน device เท่านั้น</div>
+      <div class="profile-badge" id="profileBadge">LOCAL</div>
+    </div>
+
+    <!-- Sync Status -->
+    <div style="padding: 0 var(--sp-4) var(--sp-4);">
+      <div style="background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--sp-3) var(--sp-4); margin-bottom: var(--sp-3);">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:13px; color: var(--text-2); font-weight:600;">สถานะ Sync</span>
+          <span style="font-size:12px; font-family: var(--font-mono);" id="syncStatus">—</span>
+        </div>
+        <div style="font-size:11px; color: var(--text-3); margin-top:4px;" id="lastSyncTime">—</div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap: var(--sp-3);">
+        <button class="btn btn-primary btn-full" onclick="syncNow()" id="btnSyncNow">☁️ Sync ตอนนี้</button>
+        <button class="btn btn-secondary btn-full btn-sm" onclick="exportData()">📤 Export JSON (Backup)</button>
+        <button class="btn btn-secondary btn-full btn-sm" onclick="exportCSV()">📊 Export CSV (Excel)</button>
+        <label class="btn btn-secondary btn-full btn-sm" style="cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+          📥 Import JSON
+          <input type="file" accept=".json" style="display:none;" onchange="importData(event)">
+        </label>
+        <button class="btn btn-danger btn-full btn-sm" onclick="handleLogout()" id="btnLogout">🚪 ออกจากระบบ</button>
+      </div>
+    </div>
+    <div style="height: var(--sp-6);"></div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">⚙️ ตั้งค่าระบบ</div>
+      <div class="modal-close" onclick="closeModal('settingsModal')">✕</div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-label-big">ระบบเทรด</div>
+      <div class="settings-row">
+        <div><div class="settings-row-label">Max Daily Trades</div><div class="settings-row-sub">จำนวนไม้สูงสุดต่อวัน</div></div>
+        <input type="number" class="form-input" id="settingMaxTrades" style="width:70px; text-align:center;" value="3" inputmode="numeric">
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-row-label">Max Daily Loss %</div><div class="settings-row-sub">หยุดเทรดเมื่อขาดทุนถึง % นี้</div></div>
+        <input type="number" class="form-input" id="settingMaxLoss" style="width:70px; text-align:center;" value="3" inputmode="decimal">
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-row-label">Min R:R Ratio</div><div class="settings-row-sub">R:R ขั้นต่ำที่ยอมรับ</div></div>
+        <input type="number" class="form-input" id="settingMinRR" style="width:70px; text-align:center;" value="2" inputmode="decimal">
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-row-label">Max Emotion Score</div><div class="settings-row-sub">ถ้าสูงกว่านี้ = ห้ามเทรด</div></div>
+        <input type="number" class="form-input" id="settingMaxEmotion" style="width:70px; text-align:center;" value="7" inputmode="numeric">
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-row-label">Max Loss Streak</div><div class="settings-row-sub">แพ้ติดกันกี่ครั้งให้หยุดพัก</div></div>
+        <input type="number" class="form-input" id="settingMaxLossStreak" style="width:70px; text-align:center;" value="2" inputmode="numeric">
+      </div>
+    </div>
+
+    <div style="padding: 0 var(--sp-4) var(--sp-4);">
+      <button class="btn btn-primary btn-full" onclick="saveSettings(); closeModal('settingsModal')">💾 บันทึกการตั้งค่า</button>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-label-big">ข้อมูล & Backup</div>
+      <div style="display: flex; flex-direction: column; gap: var(--sp-3);">
+        <button class="btn btn-secondary btn-full btn-sm" onclick="exportData()">📤 Export JSON (Backup สมบูรณ์)</button>
+        <button class="btn btn-secondary btn-full btn-sm" onclick="exportCSV()">📊 Export CSV (สำหรับ Excel)</button>
+        <label class="btn btn-secondary btn-full btn-sm" style="cursor:pointer;">
+          📥 Import JSON
+          <input type="file" accept=".json" style="display:none;" onchange="importData(event)">
+        </label>
+        <button class="btn btn-danger btn-full btn-sm" onclick="confirmReset()">🗑️ Reset ข้อมูลทั้งหมด</button>
+      </div>
+    </div>
+    <div style="height: var(--sp-8);"></div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">💾 Backup & Export</div>
+      <div class="modal-close" onclick="closeModal('exportModal')">✕</div>
+    </div>
+    <div class="insight-card" style="margin: 0 var(--sp-4) var(--sp-4);">
+      <div class="insight-icon">💡</div>
+      <div>
+        <div class="insight-title">แนะนำ Backup ทุกสัปดาห์</div>
+        <div class="insight-body">Export JSON เพื่อสำรองข้อมูลทั้งหมด หรือ Export CSV เพื่อนำไปวิเคราะห์ใน Excel</div>
+      </div>
+    </div>
+    <div class="export-grid">
+      <div class="export-btn" onclick="exportData()">
+        <div class="export-btn-icon">📤</div>
+        <div class="export-btn-label">Export JSON</div>
+        <div class="export-btn-sub">Backup สมบูรณ์</div>
+      </div>
+      <div class="export-btn" onclick="exportCSV()">
+        <div class="export-btn-icon">📊</div>
+        <div class="export-btn-label">Export CSV</div>
+        <div class="export-btn-sub">เปิดใน Excel</div>
+      </div>
+    </div>
+    <div style="height: var(--sp-8);"></div>
+  </div>
+</div>
+
+<!-- TRADE DETAIL MODAL -->
+<div class="modal-overlay" id="tradeDetailModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="padding: 0 var(--sp-4);" id="tradeDetailContent"></div>
+    <div style="padding: var(--sp-4); display:flex; gap: var(--sp-3);">
+      <button class="btn btn-secondary" style="flex:1;" onclick="closeModal('tradeDetailModal')">ปิด</button>
+      <button class="btn btn-danger" style="flex:1;" id="deleteTradeBtn">🗑️ ลบ</button>
+    </div>
+    <div style="height: var(--sp-4);"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<!-- Firebase SDK — โหลดก่อน script หลักของแอป -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<div id="toast"></div>
+
+<!-- ============================================================
+     JAVASCRIPT ENGINE
+     ============================================================ -->
+<script>
+/* ============================================================
+   STATE — ข้อมูลทั้งหมดของแอป
+   ============================================================ */
+let state = {
+  trades:    [],   // ประวัติการเทรดทั้งหมด
+  lifeLogs:  [],   // บันทึกชีวิตรายวัน
+  reviews:   [],   // Review ที่บันทึกไว้
+  isDemoData: false,
+
+  settings: {
+    maxDailyTrades:       3,
+    maxDailyLossPercent:  3,
+    minRR:                2,
+    maxEmotionScore:      7,
+    maxConsecutiveLosses: 2
+  },
+
+  // ค่าชั่วคราวของฟอร์ม (ไม่ได้บันทึก localStorage)
+  preEmotion:     6,
+  postEmotion:    6,
+  energy:         6,
+  calm:           6,
+  selfDrive:      'driven',
+  tradeDirection: 'long',
+  trendDir:       'side',
+  newsPresent:    'no',
+  followPlan:     'yes',
+  systemProgress: 'better',
+  filterResult:   'all',
+  filterTag:      'all',
+  activeMistakeTags: [],
+  analyticsPeriod:   'week',
+  reviewPeriod:      'daily',
+  currentEditId:     null,
+  lifeCurrentStep:   1,
+  tradeCurrentStep:  1,
+
+  // Pre-Trade Gate checks (reset ทุกครั้งที่เปิดฟอร์ม)
+  gateChecks: {
+    trend: false, structure: false, rr: false, noNews: false,
+    emotionCalm: false, notRevenge: false, notRush: false, systemBased: false
+  }
+};
+
+/* ============================================================
+   STORAGE — บันทึก/โหลดข้อมูลจาก localStorage
+   ============================================================ */
+function save() {
+  try {
+    const toSave = {
+      trades:   state.trades,
+      lifeLogs: state.lifeLogs,
+      reviews:  state.reviews,
+      settings: state.settings,
+      isDemoData: state.isDemoData
+    };
+    localStorage.setItem('personal_os_v3', JSON.stringify(toSave));
+  } catch(e) { console.warn('Save failed:', e); }
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem('personal_os_v3');
+    if (raw) {
+      const d = JSON.parse(raw);
+      state.trades      = d.trades    || [];
+      state.lifeLogs    = d.lifeLogs  || [];
+      state.reviews     = d.reviews   || [];
+      state.settings    = { ...state.settings, ...(d.settings || {}) };
+      state.isDemoData  = d.isDemoData || false;
+    }
+  } catch(e) { console.warn('Load failed:', e); }
+}
+
+/* ============================================================
+   INIT — เริ่มต้นแอป
+   ============================================================ */
+function startApp() {
+  document.getElementById('onboarding').classList.remove('show');
+  document.getElementById('app').classList.add('ready');
+  initApp();
+}
+
+function initApp() {
+  updateTopBar();
+  buildDailyChecklist();
+  buildLifeChecklist();
+  buildGateChecklist();
+  updateHomeData();
+  loadSettings();
+  updateLifeProgress();
+  renderReviewContent();
+  updateAnalytics();
+  lifeGoToStep(1);  // reset life form to step 1
+
+  // แสดง demo banner ถ้าใช้ข้อมูลตัวอย่าง
+  document.getElementById('demoBanner').style.display =
+    state.isDemoData ? 'flex' : 'none';
+}
+
+/* ============================================================
+   TOP BAR — อัพเดตวันที่และคำทักทาย
+   ============================================================ */
+function updateTopBar() {
+  const now = new Date();
+  const days   = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+  const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const h = now.getHours();
+  const greeting = h < 12 ? 'อรุณสวัสดิ์ 🌅' : h < 17 ? 'สวัสดีตอนบ่าย ☀️' : 'สวัสดีตอนเย็น 🌙';
+
+  setIfEl('topBarDate', `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`);
+  setIfEl('heroDate', `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()+543}`);
+  setIfEl('homeGreeting', greeting);
+  setIfEl('homeSubtitle', 'Personal OS — ระบบชีวิต + เทรด');
+}
+
+/* ============================================================
+   NAVIGATION — สลับหน้า
+   ============================================================ */
+function switchPage(pageId, navId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+
+  const navEl = navId
+    ? document.getElementById(navId)
+    : document.querySelector(`.nav-item[onclick*="${pageId}"]`);
+  if (navEl) navEl.classList.add('active');
+
+  document.getElementById('mainScrollArea').scrollTop = 0;
+
+  // อัพเดตข้อมูลเมื่อสลับหน้า
+  if (pageId === 'pageHome')      { updateHomeData(); }
+  if (pageId === 'pageAnalytics') { updateAnalytics(); }
+  if (pageId === 'pageJournal')   { renderTradeList(); }
+  if (pageId === 'pageLife')      { updateLifeProgress(); }
+  if (pageId === 'pageReview')    { renderReviewContent(); }
+}
+
+/* ============================================================
+   MODALS — เปิด/ปิด modal
+   ============================================================ */
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  if (id === 'tradeModal') {
+    // Reset form เมื่อเปิดใหม่
+    state.activeMistakeTags = [];
+    state.currentEditId = null;
+    state.tradeCurrentStep = 1;
+    // Reset gate checks
+    Object.keys(state.gateChecks).forEach(k => state.gateChecks[k] = false);
+    // Reset mistake tags UI
+    document.querySelectorAll('#mistakeTags .tag').forEach(t => t.classList.remove('active'));
+    // Reset form inputs
+    ['tAsset','tExchange','tReason','tScreenshot','tLesson','tEntry','tSL','tTP','tCapital','tRiskPct','tExit','tPnl'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    // Reset RR/result display
+    const rrEl = document.getElementById('rrDisplay');
+    if (rrEl) rrEl.classList.remove('show');
+    const resEl = document.getElementById('resultDisplay');
+    if (resEl) resEl.innerHTML = '';
+    // Go to step 1
+    tradeGoToStep(1);
+    buildGateChecklist();
+    updateGateResult();
+    setIfEl('tradeModalTitle', '📊 บันทึกการเทรด');
+  }
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* ============================================================
+   FORM HELPERS — ตัวช่วยฟอร์ม
+   ============================================================ */
+function updateSlider(el, valId) {
+  const pct = ((el.value - el.min) / (el.max - el.min) * 100) + '%';
+  el.style.setProperty('--pct', pct);
+  document.getElementById(valId).textContent = el.value;
+  if (valId === 'deepWorkVal') updatePreviewScores();
+}
+
+function setScale(btn, containerId, stateKey, val) {
+  state[stateKey] = val;
+  document.querySelectorAll(`#${containerId} .emotion-btn`)
+    .forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  if (stateKey === 'preEmotion') updateGateResult();
+  if (['energy','calm'].includes(stateKey)) updatePreviewScores();
+}
+
+function selectToggle(groupId, el, val) {
+  document.querySelectorAll(`#${groupId} .toggle-btn`)
+    .forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+
+  const MAP = {
+    tradeDirectionToggle: 'tradeDirection',
+    trendToggle:          'trendDir',
+    newsToggle:           'newsPresent',
+    followPlanToggle:     'followPlan',
+    systemProgressToggle: 'systemProgress',
+    selfDriveToggle:      'selfDrive',
+    filterResultToggle:   'filterResult',
+    filterTagToggle:      'filterTag'
+  };
+  if (MAP[groupId]) state[MAP[groupId]] = val;
+  if (groupId === 'selfDriveToggle') updatePreviewScores();
+}
+
+function toggleTag(el, tag) {
+  el.classList.toggle('active');
+  if (el.classList.contains('active')) {
+    if (!state.activeMistakeTags.includes(tag)) state.activeMistakeTags.push(tag);
+  } else {
+    state.activeMistakeTags = state.activeMistakeTags.filter(t => t !== tag);
+  }
+}
+
+function setIfEl(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+/* ============================================================
+   STEP-BY-STEP LIFE FORM
+   ============================================================ */
+function lifeStepNext(current) {
+  lifeGoToStep(current + 1);
+}
+function lifeStepPrev(current) {
+  lifeGoToStep(current - 1);
+}
+function lifeGoToStep(step) {
+  // ซ่อนทุก step
+  for (let i = 1; i <= 4; i++) {
+    const panel = document.getElementById(`lifeStep${i}`);
+    const dot   = document.getElementById(`lsp${i}`);
+    if (panel) panel.classList.remove('active');
+    if (dot) {
+      dot.classList.remove('active','done');
+      if (i < step) dot.classList.add('done');
+      if (i === step) dot.classList.add('active');
+    }
+  }
+  const target = document.getElementById(`lifeStep${step}`);
+  if (target) {
+    target.classList.add('active');
+    document.getElementById('mainScrollArea').scrollTop = 0;
+  }
+  state.lifeCurrentStep = step;
+  if (step === 4) updatePreviewScores();
+}
+
+/* ============================================================
+   STEP-BY-STEP TRADE FORM
+   ============================================================ */
+function tradeStepNext(current) {
+  tradeGoToStep(current + 1);
+}
+function tradeStepPrev(current) {
+  tradeGoToStep(current - 1);
+}
+function tradeGoToStep(step) {
+  for (let i = 1; i <= 3; i++) {
+    const panel = document.getElementById(`tradeStep${i}`);
+    const dot   = document.getElementById(`tsp${i}`);
+    if (panel) panel.classList.remove('active');
+    if (dot) {
+      dot.classList.remove('active','done');
+      if (i < step) dot.classList.add('done');
+      if (i === step) dot.classList.add('active');
+    }
+  }
+  const target = document.getElementById(`tradeStep${step}`);
+  if (target) {
+    target.classList.add('active');
+    // scroll modal ไปด้านบน
+    const sheet = document.querySelector('#tradeModal .modal-sheet');
+    if (sheet) sheet.scrollTop = 0;
+  }
+  state.tradeCurrentStep = step;
+}
+
+/* ============================================================
+   DAILY CHECKLIST — ติ๊กกิจกรรมประจำวัน (หน้า Home)
+   ============================================================ */
+const DAILY_ITEMS = [
+  { key: 'sleep',     label: '😴 นอนพอ (≥6h)' },
+  { key: 'meditate',  label: '🧘 นั่งสมาธิ / หายใจ' },
+  { key: 'exercise',  label: '🏃 ออกกำลังกาย' },
+  { key: 'deepwork',  label: '💡 Deep Work ≥1h' },
+  { key: 'review',    label: '📖 Review เทรดเมื่อคืน' },
+  { key: 'intention', label: '🎯 ตั้งใจวันนี้แล้ว' }
+];
+
+let dailyChecks = {};
+
+function buildDailyChecklist() {
+  const el = document.getElementById('dailyChecklist');
+  if (!el) return;
+
+  const today = todayKey();
+  const saved = (state.lifeLogs.find(l => l.date === today) || {}).dailyChecks || {};
+  dailyChecks = { ...saved };
+
+  // ใช้ <label> + <input checkbox> — iOS Safari กดได้ 100% ไม่ต้องพึ่ง onclick
+  el.innerHTML = DAILY_ITEMS.map(item => `
+    <div class="check-item">
+      <label for="chk_${item.key}">
+        <input type="checkbox" id="chk_${item.key}"
+          ${dailyChecks[item.key] ? 'checked' : ''}
+          onchange="toggleDailyCheck('${item.key}')">
+        <div class="check-box ${dailyChecks[item.key] ? 'checked' : ''}">
+          ${dailyChecks[item.key] ? '✓' : ''}
+        </div>
+        <span class="check-label ${dailyChecks[item.key] ? 'done' : ''}">${item.label}</span>
+      </label>
+    </div>
+  `).join('');
+
+  updateChecklistScore();
+  updateChecklistAlert();
+}
+
+function toggleDailyCheck(key) {
+  dailyChecks[key] = !dailyChecks[key];
+  buildDailyChecklist();
+  updateChecklistScore();
+  autoSaveDailyChecks();
+}
+
+function updateChecklistScore() {
+  const done  = Object.values(dailyChecks).filter(Boolean).length;
+  const total = DAILY_ITEMS.length;
+  setIfEl('checklistScore', `${done}/${total}`);
+
+  const completeBanner = document.getElementById('checklistComplete');
+  if (completeBanner) {
+    completeBanner.classList.toggle('show', done === total);
+  }
+}
+
+function updateChecklistAlert() {
+  const done  = Object.values(dailyChecks).filter(Boolean).length;
+  const total = DAILY_ITEMS.length;
+  const alert = document.getElementById('checklistAlert');
+  const alertText = document.getElementById('checklistAlertText');
+  if (!alert) return;
+
+  if (done < total && done > 0) {
+    alert.classList.add('show');
+    alertText.textContent = `Checklist ยังขาดอีก ${total - done} รายการ — แนะนำทำให้ครบก่อนเทรด`;
+  } else if (done === 0) {
+    alert.classList.add('show');
+    alertText.textContent = 'ยังไม่ได้ทำ Checklist เลย — เริ่มวันใหม่ด้วยการเช็คอินก่อน';
+  } else {
+    alert.classList.remove('show');
+  }
+}
+
+function autoSaveDailyChecks() {
+  const today = todayKey();
+  let log = state.lifeLogs.find(l => l.date === today);
+  if (!log) { log = { date: today }; state.lifeLogs.push(log); }
+  log.dailyChecks = { ...dailyChecks };
+  save();
+  updateGateStatus();
+}
+
+/* ============================================================
+   LIFE CHECKLIST — กิจกรรมชีวิต (หน้า Life)
+   ============================================================ */
+const LIFE_ITEMS = [
+  { key: 'meditate',  label: '🧘 นั่งสมาธิ / หายใจ' },
+  { key: 'exercise',  label: '🏃 ออกกำลังกาย' },
+  { key: 'eatwell',   label: '🥗 กินอาหารดี' },
+  { key: 'noscreen',  label: '📵 ไม่ดูมือถือ >2h ก่อนนอน' },
+  { key: 'closedloop',label: '✅ ปิด loop งานค้าง' },
+  { key: 'gratitude', label: '🙏 ขอบคุณ/ระลึกสิ่งดี' }
+];
+
+let lifeChecks = {};
+
+function buildLifeChecklist() {
+  const el = document.getElementById('lifeChecklist');
+  if (!el) return;
+
+  const today = todayKey();
+  const saved = (state.lifeLogs.find(l => l.date === today) || {}).lifeChecks || {};
+  lifeChecks = { ...saved };
+
+  el.innerHTML = LIFE_ITEMS.map(item => `
+    <div class="check-item">
+      <label for="life_${item.key}">
+        <input type="checkbox" id="life_${item.key}"
+          ${lifeChecks[item.key] ? 'checked' : ''}
+          onchange="toggleLifeCheck('${item.key}')">
+        <div class="check-box ${lifeChecks[item.key] ? 'checked' : ''}">
+          ${lifeChecks[item.key] ? '✓' : ''}
+        </div>
+        <span class="check-label ${lifeChecks[item.key] ? 'done' : ''}">${item.label}</span>
+      </label>
+    </div>
+  `).join('');
+}
+
+function toggleLifeCheck(key) {
+  lifeChecks[key] = !lifeChecks[key];
+  buildLifeChecklist();
+  updatePreviewScores();
+}
+
+/* ============================================================
+   SCORES — คำนวณ Discipline Score, Alignment Score
+   ============================================================ */
+
+/**
+ * Discipline Score (0–10)
+ * = ค่าเฉลี่ยของ: energy, calm, sleep bonus, checklist completion %, selfDrive bonus
+ */
+function calcDisciplineScore(energy, calm, sleepH, dailyChecksDone, totalChecks, selfDrive) {
+  const sleepBonus = sleepH >= 7 ? 10 : sleepH >= 6 ? 7 : 4;
+  const checkPct = totalChecks > 0 ? (dailyChecksDone / totalChecks) * 10 : 0;
+  const driveBonus = selfDrive === 'driven' ? 10 : selfDrive === 'mixed' ? 6 : 3;
+  return Math.round(((energy + calm + sleepBonus + checkPct + driveBonus) / 5) * 10) / 10;
+}
+
+/**
+ * Alignment Score (0–10)
+ * = วัดความสอดคล้องระหว่างคะแนนชีวิตกับพฤติกรรมเทรดวันนั้น
+ * ถ้าวินัยชีวิตสูง แต่ยังมี mistake → alignment ต่ำ
+ */
+function calcAlignmentScore(disciplineScore, todaysTrades) {
+  if (!todaysTrades.length) return disciplineScore; // ไม่มีเทรด = align กับตัวเอง
+  const mistakePenalty = todaysTrades.reduce((sum, t) => sum + (t.mistakeTags?.length || 0), 0);
+  const notFollowedCount = todaysTrades.filter(t => t.followPlan === 'no').length;
+  const penalty = Math.min(3, mistakePenalty * 0.5 + notFollowedCount);
+  return Math.max(0, Math.round((disciplineScore - penalty) * 10) / 10);
+}
+
+function updatePreviewScores() {
+  const sleepH  = parseFloat(document.getElementById('sleepHours')?.value || 7);
+  const deepW   = parseFloat(document.getElementById('deepWorkHours')?.value || 2);
+  const doneCount = Object.values(lifeChecks).filter(Boolean).length;
+
+  const discipline = calcDisciplineScore(
+    state.energy, state.calm, sleepH, doneCount, LIFE_ITEMS.length, state.selfDrive
+  );
+
+  const today = todayKey();
+  const todaysTrades = state.trades.filter(t => t.date === today);
+  const alignment = calcAlignmentScore(discipline, todaysTrades);
+
+  setIfEl('previewDiscipline', `${discipline}/10`);
+  setIfEl('previewAlign', `${alignment}/10`);
+}
+
+/* ============================================================
+   LIFE CHECK-IN SAVE — บันทึก Life Check-in
+   ============================================================ */
+function saveLifeCheckin() {
+  const today    = todayKey();
+  const sleepH   = parseFloat(document.getElementById('sleepHours').value);
+  const deepWork = parseFloat(document.getElementById('deepWorkHours').value);
+  const note     = document.getElementById('lifeDayNote')?.value || '';
+
+  const doneCount = Object.values(lifeChecks).filter(Boolean).length;
+  const discipline = calcDisciplineScore(
+    state.energy, state.calm, sleepH, doneCount, LIFE_ITEMS.length, state.selfDrive
+  );
+
+  const todaysTrades = state.trades.filter(t => t.date === today);
+  const alignment = calcAlignmentScore(discipline, todaysTrades);
+
+  // หาหรือสร้าง log ของวันนี้
+  let log = state.lifeLogs.find(l => l.date === today);
+  if (!log) { log = { date: today }; state.lifeLogs.push(log); }
+
+  Object.assign(log, {
+    energy:          state.energy,
+    calm:            state.calm,
+    sleep:           sleepH,
+    deepWork,
+    selfDrive:       state.selfDrive,
+    disciplineScore: discipline,
+    alignmentScore:  alignment,
+    note,
+    lifeChecks:      { ...lifeChecks },
+    dailyChecks:     { ...dailyChecks }
+  });
+
+  save();
+  updateGateStatus();
+  updateHomeData();
+  buildDailyChecklist();
+  updateLifeProgress();
+
+  showToast('✅ บันทึก Check-in แล้ว!');
+
+  // กลับไปหน้า Home
+  setTimeout(() => switchPage('pageHome','nav-home'), 800);
+}
+
+/* ============================================================
+   LIFE PROGRESS — อัพเดตสถิติ 7 วัน
+   ============================================================ */
+function updateLifeProgress() {
+  const last7 = getLast7Logs();
+  if (!last7.length) return;
+
+  const avgD = avg(last7.map(l => l.disciplineScore || 0));
+  const avgE = avg(last7.map(l => l.energy || 0));
+  const avgC = avg(last7.map(l => l.calm || 0));
+  const avgA = avg(last7.map(l => l.alignmentScore || l.disciplineScore || 0));
+
+  setIfEl('avgDiscipline', avgD.toFixed(1));
+  setIfEl('avgEnergy',     avgE.toFixed(1));
+  setIfEl('avgCalm',       avgC.toFixed(1));
+  setIfEl('avgAlign',      avgA.toFixed(1));
+
+  setWidth('pbDiscipline', avgD * 10);
+  setWidth('pbEnergy',     avgE * 10);
+  setWidth('pbCalm',       avgC * 10);
+  setWidth('pbAlign',      avgA * 10);
+}
+
+function getLast7Logs() {
+  const today = todayKey();
+  const result = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const k = d.toISOString().slice(0, 10);
+    const log = state.lifeLogs.find(l => l.date === k);
+    if (log) result.push(log);
+  }
+  return result;
+}
+
+function setWidth(id, pct) {
+  const el = document.getElementById(id);
+  if (el) el.style.width = Math.min(100, Math.max(0, pct)) + '%';
+}
+
+/* ============================================================
+   HOME DATA — อัพเดตข้อมูลหน้าหลัก
+   ============================================================ */
+function updateHomeData() {
+  const today = todayKey();
+  const todayTrades = state.trades.filter(t => t.date === today);
+  const wins  = todayTrades.filter(t => (t.pnl || 0) > 0);
+  const pnl   = todayTrades.reduce((s, t) => s + (t.pnl || 0), 0);
+  const wr    = todayTrades.length ? Math.round(wins.length / todayTrades.length * 100) : null;
+
+  const pnlEl = document.getElementById('homePnl');
+  if (pnlEl) {
+    pnlEl.textContent = (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(0);
+    pnlEl.className = 'hero-stat-val ' + (pnl > 0 ? 'pos' : pnl < 0 ? 'neg' : 'neu');
+  }
+  setIfEl('homeTrades', todayTrades.length);
+  setIfEl('homeWinRate', wr !== null ? wr + '%' : '—%');
+
+  // Metric cards
+  const todayLog = state.lifeLogs.find(l => l.date === today);
+  if (todayLog) {
+    const ds = todayLog.disciplineScore || 0;
+    const as = todayLog.alignmentScore  || ds;
+    const es = todayLog.energy          || 0;
+
+    setIfEl('metricDiscipline', ds.toFixed(1));
+    setIfEl('metricAlign',      as.toFixed(1));
+    setIfEl('metricEnergy',     es.toFixed(1));
+
+    const dsEl = document.getElementById('metricDisciplineBadge');
+    if (dsEl) {
+      dsEl.textContent = ds >= 8 ? '🔥 ยอดเยี่ยม' : ds >= 6 ? '✅ ดี' : ds >= 4 ? '⚡ พอไหว' : '⚠️ ต้องปรับ';
+      dsEl.className = `metric-badge ${ds >= 7 ? 'mb-win' : ds >= 5 ? 'mb-info' : 'mb-warn'}`;
+    }
+    const asEl = document.getElementById('metricAlignBadge');
+    if (asEl) {
+      asEl.textContent = as >= 7 ? '🔗 Aligned' : as >= 5 ? '↔️ กลาง' : '⚠️ Misaligned';
+      asEl.className = `metric-badge ${as >= 7 ? 'mb-win' : as >= 5 ? 'mb-info' : 'mb-warn'}`;
+    }
+    const eeEl = document.getElementById('metricEnergyBadge');
+    if (eeEl) {
+      eeEl.textContent = es >= 8 ? 'พลังสูง' : es >= 6 ? 'พอดี' : 'พลังน้อย';
+      eeEl.className = `metric-badge ${es >= 7 ? 'mb-win' : es >= 5 ? 'mb-info' : 'mb-warn'}`;
+    }
+  } else {
+    setIfEl('metricDiscipline', '—');
+    setIfEl('metricAlign',      '—');
+    setIfEl('metricEnergy',     '—');
+  }
+
+  // Streak
+  const streak = calcStreak();
+  setIfEl('metricStreak', streak);
+
+  // Gate status
+  updateGateStatus();
+
+  // Recent trades list
+  const listEl = document.getElementById('homeTrades_list');
+  if (listEl) {
+    if (!todayTrades.length) {
+      listEl.innerHTML = `<div class="empty-state" style="padding: var(--sp-5) 0;">
+        <div style="font-size:32px;">📋</div>
+        <div style="font-size:13px; color: var(--text-3); margin-top: var(--sp-2);">ยังไม่มีเทรดวันนี้</div>
+      </div>`;
+    } else {
+      listEl.innerHTML = [...todayTrades].reverse().slice(0,5).map(t => tradeItemHTML(t)).join('');
+    }
+  }
+
+  // Daily quote rotation
+  const QUOTES = [
+    'ระบบที่ดีคือเกราะป้องกันอารมณ์ ไม่ใช่กรงที่กักขังอิสรภาพ',
+    'ชนะไม่ใช่ทุก ๆ ครั้ง แต่ชนะทุกครั้งที่ทำตามระบบ',
+    'วินัยคือสะพานระหว่างความฝันกับความสำเร็จ',
+    'เทรดดีที่สุดคือเทรดที่ไม่ได้เข้า — เมื่อไม่พร้อม',
+    'ความนิ่งคือขอบได้เปรียบที่ยิ่งใหญ่ที่สุดในการเทรด',
+    'เปลี่ยนแปลงภายในก่อน แล้วภายนอกจะเปลี่ยนตาม'
+  ];
+  const quoteIdx = new Date().getDay();
+  setIfEl('dailyQuote', QUOTES[quoteIdx % QUOTES.length]);
+
+  // Mini equity chart
+  renderEquityMiniChart();
+}
+
+/* ============================================================
+   GATE STATUS — ตรวจสอบสถานะความพร้อมเทรด
+   ============================================================ */
+function updateGateStatus() {
+  const today    = todayKey();
+  const todayLog = state.lifeLogs.find(l => l.date === today);
+  const el = document.getElementById('gateStatus');
+  if (!el) return;
+
+  if (!todayLog) {
+    el.className = 'gate-card gate-warn';
+    el.innerHTML = `<div class="gate-icon">⚡</div><div><div class="gate-title">รอทำ Daily Check-in</div><div class="gate-sub">กด "Life" เพื่อกรอกสภาพวันนี้ก่อน</div></div>`;
+    return;
+  }
+
+  const ds = todayLog.disciplineScore || 0;
+  const es = todayLog.energy || 0;
+  const cs = todayLog.calm || 0;
+  const consecutiveLosses = checkConsecutiveLosses();
+  const todayTrades = state.trades.filter(t => t.date === today);
+  const todayPnlPct = todayTrades.reduce((s,t) => s + (t.pnl||0), 0) / (state.settings.maxDailyLossPercent || 3) * 10;
+
+  const issues = [];
+  if (ds < 4)  issues.push(`Discipline ต่ำ (${ds}/10)`);
+  if (es < 4)  issues.push(`พลังงานน้อย (${es}/10)`);
+  if (cs < 4)  issues.push(`จิตใจไม่นิ่ง (${cs}/10)`);
+  if (consecutiveLosses >= (state.settings.maxConsecutiveLosses || 2))
+    issues.push(`แพ้ติดกัน ${consecutiveLosses} ไม้`);
+  if (todayTrades.length >= (state.settings.maxDailyTrades || 3))
+    issues.push(`ถึง Max Trades แล้ว`);
+
+  if (issues.length === 0 && ds >= 6) {
+    el.className = 'gate-card gate-go';
+    el.innerHTML = `<div class="gate-icon">🟢</div><div><div class="gate-title">พร้อมเทรด!</div><div class="gate-sub">Discipline ${ds}/10 · พลังงาน ${es}/10 · ความนิ่ง ${cs}/10</div></div>`;
+  } else if (issues.length === 0) {
+    el.className = 'gate-card gate-info';
+    el.innerHTML = `<div class="gate-icon">🔵</div><div><div class="gate-title">ระมัดระวัง</div><div class="gate-sub">Discipline ${ds}/10 — เช็ค Pre-Trade Gate ก่อนทุกไม้</div></div>`;
+  } else {
+    el.className = 'gate-card gate-no';
+    el.innerHTML = `<div class="gate-icon">🔴</div><div><div class="gate-title">ไม่แนะนำให้เทรด</div><div class="gate-sub">${issues.slice(0,2).join(' · ')}</div></div>`;
+  }
+}
+
+/* ============================================================
+   PRE-TRADE GATE CHECKLIST — เช็คก่อนเข้าทุกไม้
+   ============================================================ */
+const GATE_ITEMS = [
+  { key: 'trend',      label: '📈 เห็น Trend ชัดเจน' },
+  { key: 'structure',  label: '🏗️ มี Structure / S&R ชัดเจน' },
+  { key: 'rr',         label: '📐 R:R ≥ Min ที่ตั้งไว้' },
+  { key: 'noNews',     label: '📰 ไม่มีข่าวสำคัญ' },
+  { key: 'emotionCalm',label: '🧘 อารมณ์นิ่ง ไม่ตื่นเต้น' },
+  { key: 'notRevenge', label: '❌ ไม่ใช่ Revenge Trade' },
+  { key: 'notRush',    label: '⏰ ไม่ได้รีบ / ไม่ FOMO' },
+  { key: 'systemBased',label: '✅ Setup อยู่ในระบบเท่านั้น' }
+];
+
+function buildGateChecklist() {
+  const el = document.getElementById('gateChecklist');
+  if (!el) return;
+
+  el.innerHTML = GATE_ITEMS.map(item => `
+    <div class="gate-item ${state.gateChecks[item.key] ? 'pass' : ''}"
+         onclick="toggleGateCheck('${item.key}')" role="button" tabindex="0"
+         style="touch-action:manipulation;-webkit-tap-highlight-color:transparent;">
+      <div class="gate-check-icon" style="pointer-events:none;">${state.gateChecks[item.key] ? '✅' : '⬜'}</div>
+      <div class="gate-item-text" style="pointer-events:none;">${item.label}</div>
+    </div>
+  `).join('');
+
+  updateGateResult();
+}
+
+function toggleGateCheck(key) {
+  state.gateChecks[key] = !state.gateChecks[key];
+  buildGateChecklist();
+  updateGateResult();
+}
+
+function updateGateResult() {
+  const el = document.getElementById('gateResult');
+  if (!el) return;
+
+  const passCount  = Object.values(state.gateChecks).filter(Boolean).length;
+  const totalCount = GATE_ITEMS.length;
+  const allPass    = passCount === totalCount;
+
+  if (allPass) {
+    el.innerHTML = `<div style="background: var(--win-bg); border: 1px solid var(--win-border); border-radius: var(--r-md); padding: var(--sp-3); text-align:center;">
+      <div style="color: var(--win); font-weight: 800; font-size: 15px;">🟢 TRADE ALLOWED</div>
+      <div style="color: var(--text-3); font-size: 12px; margin-top:4px;">${passCount}/${totalCount} เงื่อนไขผ่านครบ</div>
+    </div>`;
+  } else {
+    el.innerHTML = `<div style="background: var(--loss-bg); border: 1px solid var(--loss-border); border-radius: var(--r-md); padding: var(--sp-3); text-align:center;">
+      <div style="color: var(--loss); font-weight: 800; font-size: 15px;">🔴 NO TRADE</div>
+      <div style="color: var(--text-3); font-size: 12px; margin-top:4px;">ผ่าน ${passCount}/${totalCount} — ยังขาด ${totalCount - passCount} รายการ</div>
+    </div>`;
+  }
+}
+
+function checkConsecutiveLosses() {
+  const sorted = [...state.trades].sort((a,b) => new Date(b.timestamp||0) - new Date(a.timestamp||0));
+  let count = 0;
+  for (const t of sorted) {
+    if ((t.pnl || 0) < 0) count++;
+    else break;
+  }
+  return count;
+}
+
+/* ============================================================
+   R:R CALCULATOR — คำนวณ Risk:Reward อัตโนมัติ
+   ============================================================ */
+function calcRR() {
+  const entry  = parseFloat(document.getElementById('tEntry')?.value);
+  const sl     = parseFloat(document.getElementById('tSL')?.value);
+  const tp     = parseFloat(document.getElementById('tTP')?.value);
+  const capital  = parseFloat(document.getElementById('tCapital')?.value);
+  const riskPct  = parseFloat(document.getElementById('tRiskPct')?.value);
+  const rrEl   = document.getElementById('rrDisplay');
+  if (!rrEl) return;
+
+  if (!entry || !sl || !tp || isNaN(entry) || isNaN(sl) || isNaN(tp)) {
+    rrEl.classList.remove('show');
+    return;
+  }
+
+  const risk   = Math.abs(entry - sl);
+  const reward = Math.abs(tp - entry);
+  if (risk === 0) { rrEl.classList.remove('show'); return; }
+
+  const rr = reward / risk;
+  const riskAmt   = (capital && riskPct) ? capital * riskPct / 100 : null;
+  const rewardAmt = riskAmt ? riskAmt * rr : null;
+  const minRR     = state.settings.minRR || 2;
+  const isGood    = rr >= minRR;
+
+  setIfEl('rrVal', rr.toFixed(2) + ':1 ' + (isGood ? '✅' : '⚠️'));
+  setIfEl('riskAmount', riskAmt ? '$' + riskAmt.toFixed(2) : '—');
+  setIfEl('maxProfitAmount', rewardAmt ? '$' + rewardAmt.toFixed(2) : '—');
+
+  rrEl.className = 'rr-display show ' + (isGood ? 'good' : 'bad');
+
+  // Auto-update gate RR check
+  if (isGood !== state.gateChecks.rr) {
+    state.gateChecks.rr = isGood;
+    buildGateChecklist();
+    updateGateResult();
+  }
+}
+
+function calcResult() {
+  const entry  = parseFloat(document.getElementById('tEntry')?.value);
+  const exitP  = parseFloat(document.getElementById('tExit')?.value);
+  const sl     = parseFloat(document.getElementById('tSL')?.value);
+  const capital  = parseFloat(document.getElementById('tCapital')?.value);
+  const riskPct  = parseFloat(document.getElementById('tRiskPct')?.value);
+  const el = document.getElementById('resultDisplay');
+  if (!el) return;
+
+  if (!entry || !exitP || !sl) { el.innerHTML = ''; return; }
+
+  const riskPer  = Math.abs(entry - sl);
+  if (riskPer === 0) { el.innerHTML = ''; return; }
+
+  // คำนวณ R-Multiple โดยพิจารณาทิศทาง
+  const dirMult  = state.tradeDirection === 'short' ? -1 : 1;
+  const resultPer = (exitP - entry) * dirMult;
+  const rMultiple = resultPer / riskPer;
+
+  const riskAmt  = (capital && riskPct) ? capital * riskPct / 100 : null;
+  const pnl      = riskAmt ? rMultiple * riskAmt : null;
+
+  // Auto-fill P/L
+  const pnlInput = document.getElementById('tPnl');
+  if (pnlInput && pnl !== null) pnlInput.value = pnl.toFixed(2);
+
+  const isWin = rMultiple > 0;
+  el.innerHTML = `<div style="background: ${isWin ? 'var(--win-bg)' : 'var(--loss-bg)'}; border: 1px solid ${isWin ? 'var(--win-border)' : 'var(--loss-border)'}; border-radius: var(--r-md); padding: var(--sp-3); display: flex; justify-content: space-between; align-items: center;">
+    <span style="color: ${isWin ? 'var(--win)' : 'var(--loss)'}; font-weight: 800; font-size: 16px;">${isWin ? '✅ WIN' : '❌ LOSS'}</span>
+    <div style="text-align:right;">
+      <div style="color: ${isWin ? 'var(--win)' : 'var(--loss)'}; font-weight: 700; font-family: var(--font-mono); font-size: 16px;">${rMultiple >= 0 ? '+' : ''}${rMultiple.toFixed(2)}R</div>
+      ${pnl !== null ? `<div style="font-size: 12px; color: var(--text-3);">${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   SAVE TRADE — บันทึกการเทรด
+   ============================================================ */
+function saveTrade() {
+  const entry   = parseFloat(document.getElementById('tEntry')?.value) || 0;
+  const sl      = parseFloat(document.getElementById('tSL')?.value) || 0;
+  const tp      = parseFloat(document.getElementById('tTP')?.value) || 0;
+  const exitP   = parseFloat(document.getElementById('tExit')?.value) || 0;
+  const capital = parseFloat(document.getElementById('tCapital')?.value) || 0;
+  const riskPct = parseFloat(document.getElementById('tRiskPct')?.value) || 1;
+
+  // คำนวณ R-Multiple
+  const riskPer  = sl && entry ? Math.abs(entry - sl) : 1;
+  const dirMult  = state.tradeDirection === 'short' ? -1 : 1;
+  const resultPer = exitP && entry ? (exitP - entry) * dirMult : 0;
+  const rMultiple = riskPer > 0 ? resultPer / riskPer : 0;
+
+  // คำนวณ P/L
+  const pnlInput = parseFloat(document.getElementById('tPnl')?.value);
+  const pnlCalc  = capital && riskPct ? rMultiple * capital * riskPct / 100 : 0;
+  const pnl      = !isNaN(pnlInput) && pnlInput !== 0 ? pnlInput : pnlCalc;
+
+  const trade = {
+    id:         'T' + Date.now(),
+    date:       todayKey(),
+    timestamp:  new Date().toISOString(),
+    asset:      document.getElementById('tAsset')?.value || '—',
+    exchange:   document.getElementById('tExchange')?.value || '—',
+    direction:  state.tradeDirection,
+    timeframe:  document.getElementById('tTimeframe')?.value || '1h',
+    setup:      document.getElementById('tSetup')?.value || '—',
+    trend:      state.trendDir,
+    entry, sl, tp,
+    exitPrice:  exitP,
+    capital, riskPct,
+    pnl,
+    rMultiple,
+    reason:     document.getElementById('tReason')?.value || '',
+    screenshot: document.getElementById('tScreenshot')?.value || '',
+    preEmotion:  state.preEmotion,
+    postEmotion: state.postEmotion,
+    news:        state.newsPresent,
+    followPlan:  state.followPlan,
+    mistakeTags: [...state.activeMistakeTags],
+    lesson:      document.getElementById('tLesson')?.value || '',
+    gateChecks:  { ...state.gateChecks },
+    gateAllPassed: Object.values(state.gateChecks).every(Boolean)
+  };
+
+  if (state.currentEditId) {
+    const idx = state.trades.findIndex(t => t.id === state.currentEditId);
+    if (idx >= 0) state.trades[idx] = { ...state.trades[idx], ...trade, id: state.currentEditId };
+  } else {
+    state.trades.push(trade);
+  }
+
+  // Reset gate checks สำหรับไม้ถัดไป
+  Object.keys(state.gateChecks).forEach(k => state.gateChecks[k] = false);
+
+  save();
+  closeModal('tradeModal');
+  renderTradeList();
+  updateHomeData();
+
+  // เตือนถ้า checklist ไม่ครบ
+  const doneCount = Object.values(dailyChecks).filter(Boolean).length;
+  if (doneCount < DAILY_ITEMS.length) {
+    showToast(`⚠️ บันทึกแล้ว — checklist ยังขาด ${DAILY_ITEMS.length - doneCount} รายการ`);
+  } else {
+    showToast('✅ บันทึกการเทรดแล้ว!');
+  }
+}
+
+/* ============================================================
+   RENDER TRADE LIST — แสดงรายการเทรด
+   ============================================================ */
+function renderTradeList() {
+  const el = document.getElementById('tradeList');
+  if (!el) return;
+
+  let trades = [...state.trades].reverse();
+
+  // Apply filters
+  const assetF = (document.getElementById('filterAsset') || {}).value || '';
+  if (assetF) trades = trades.filter(t => t.asset?.toLowerCase().includes(assetF.toLowerCase()));
+  if (state.filterResult === 'win')  trades = trades.filter(t => (t.pnl || 0) > 0);
+  if (state.filterResult === 'loss') trades = trades.filter(t => (t.pnl || 0) < 0);
+  if (state.filterTag !== 'all')     trades = trades.filter(t => t.mistakeTags?.includes(state.filterTag));
+
+  if (!trades.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <div class="empty-title">ไม่พบข้อมูลการเทรด</div>
+      <div class="empty-sub">ลองเปลี่ยน filter หรือเพิ่มเทรดใหม่</div>
+    </div>`;
+    updateJournalStats([]);
+    return;
+  }
+
+  el.innerHTML = trades.map(t => tradeItemHTML(t)).join('');
+  updateJournalStats(trades);
+}
+
+function updateJournalStats(trades) {
+  if (!trades.length) {
+    ['jWinRate','jAvgR','jTotalPnl','jExpectancy'].forEach(id => setIfEl(id, '—'));
+    return;
+  }
+  const wins    = trades.filter(t => (t.pnl || 0) > 0);
+  const losses  = trades.filter(t => (t.pnl || 0) < 0);
+  const wr      = Math.round(wins.length / trades.length * 100);
+  const avgR    = avg(trades.map(t => t.rMultiple || 0));
+  const totalPnl = trades.reduce((s, t) => s + (t.pnl || 0), 0);
+
+  // Expectancy = (WR * avgWin) - (LR * avgLoss)  in R units
+  const avgWinR  = wins.length   ? avg(wins.map(t => t.rMultiple  || 0)) : 0;
+  const avgLossR = losses.length ? avg(losses.map(t => Math.abs(t.rMultiple || 0))) : 0;
+  const lr       = 1 - wins.length / trades.length;
+  const expectancy = (wins.length / trades.length * avgWinR) - (lr * avgLossR);
+
+  setIfEl('jWinRate',     wr + '%');
+  setIfEl('jAvgR',        avgR.toFixed(2) + 'R');
+  setIfEl('jTotalPnl',    (totalPnl >= 0 ? '+' : '') + '$' + totalPnl.toFixed(0));
+  setIfEl('jExpectancy',  expectancy.toFixed(2) + 'R');
+}
+
+function tradeItemHTML(t) {
+  const isWin = (t.pnl || 0) >= 0;
+  return `<div class="trade-item" onclick="showTradeDetail('${t.id}')">
+    <div class="trade-dot ${isWin ? 'win' : 'loss'}"></div>
+    <div class="trade-info">
+      <div class="trade-asset">${t.asset || '—'} <span style="font-size:11px; color: var(--text-3); font-weight:400;">${t.direction?.toUpperCase() || ''}</span></div>
+      <div class="trade-meta">${t.date} · ${t.setup || ''} · ${t.timeframe || ''}</div>
+    </div>
+    <div class="trade-right">
+      <div class="trade-pnl ${isWin ? 'pos' : 'neg'}">${(t.pnl || 0) >= 0 ? '+' : ''}$${(t.pnl || 0).toFixed(0)}</div>
+      <div class="trade-r">${(t.rMultiple || 0) >= 0 ? '+' : ''}${(t.rMultiple || 0).toFixed(2)}R</div>
+    </div>
+  </div>`;
+}
+
+function applyFilter()  { renderTradeList(); }
+function resetFilter()  {
+  state.filterResult = 'all'; state.filterTag = 'all';
+  document.querySelectorAll('#filterResultToggle .toggle-btn, #filterTagToggle .toggle-btn')
+    .forEach((b,i) => b.classList.toggle('active', i === 0 || i === 3));
+  renderTradeList();
+}
+
+/* ============================================================
+   TRADE DETAIL — ดูรายละเอียดการเทรด
+   ============================================================ */
+function showTradeDetail(id) {
+  const t = state.trades.find(tr => tr.id === id);
+  if (!t) return;
+
+  const isWin = (t.pnl || 0) >= 0;
+  const gatePass = t.gateAllPassed ? '✅ ผ่านครบ' : '⚠️ ไม่ครบ';
+
+  document.getElementById('tradeDetailContent').innerHTML = `
+    <div style="padding-top: var(--sp-2);">
+      <div style="display:flex; align-items:center; gap: var(--sp-3); margin-bottom: var(--sp-4);">
+        <div style="font-size: 22px; font-weight: 800; color: var(--text-1);">${t.asset || '—'}</div>
+        <span class="badge ${isWin ? 'badge-win' : 'badge-loss'}">${isWin ? '✅ WIN' : '❌ LOSS'}</span>
+        <span class="badge badge-neutral">${t.direction?.toUpperCase() || ''}</span>
+      </div>
+
+      <div class="metric-grid" style="margin: 0 0 var(--sp-4);">
+        <div class="metric-card" style="margin: 0;">
+          <div class="metric-icon">💰</div>
+          <div class="metric-val" style="${isWin ? 'color: var(--win)' : 'color: var(--loss)'}">
+            ${(t.pnl || 0) >= 0 ? '+' : ''}$${(t.pnl || 0).toFixed(2)}
+          </div>
+          <div class="metric-label">P/L</div>
+        </div>
+        <div class="metric-card" style="margin: 0;">
+          <div class="metric-icon">📐</div>
+          <div class="metric-val" style="${(t.rMultiple||0) >= 0 ? 'color: var(--win)' : 'color: var(--loss)'}">
+            ${(t.rMultiple || 0) >= 0 ? '+' : ''}${(t.rMultiple || 0).toFixed(2)}R
+          </div>
+          <div class="metric-label">R-Multiple</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin: 0 0 var(--sp-3);">
+        <table style="width:100%; font-size:13px; border-collapse:collapse;">
+          <tr><td style="color: var(--text-3); padding: 6px 0; width:40%;">วันที่</td><td style="font-weight:600;">${t.date}</td></tr>
+          <tr><td style="color: var(--text-3); padding: 6px 0;">Setup</td><td style="font-weight:600;">${t.setup || '—'}</td></tr>
+          <tr><td style="color: var(--text-3); padding: 6px 0;">Timeframe</td><td style="font-weight:600;">${t.timeframe || '—'}</td></tr>
+          <tr><td style="color: var(--text-3); padding: 6px 0;">Entry</td><td style="font-family: var(--font-mono);">${t.entry || '—'}</td></tr>
+          <tr><td style="color: var(--text-3); padding: 6px 0;">Stop Loss</td><td style="font-family: var(--font-mono); color: var(--loss);">${t.sl || '—'}</td></tr>
+          <tr><td style="color: var(--text-3); padding: 6px 0;">Take Profit</td><td style="font-family: var(--font-mono); color: var(--win);">${t.tp || '—'}</td></tr>
+          <tr><td style="color: var(--text-3); padding: 6px 0;">ออกที่</td><td style="font-family: var(--font-mono);">${t.exitPrice || '—'}</td></tr>
+          <tr><td style="color: var(--text-3); padding: 6px 0;">ทำตามแผน</td><td><span class="badge ${t.followPlan === 'yes' ? 'badge-win' : t.followPlan === 'partial' ? 'badge-warn' : 'badge-loss'}">${t.followPlan === 'yes' ? '✅ ใช่' : t.followPlan === 'partial' ? '⚡ บางส่วน' : '❌ ไม่'}</span></td></tr>
+          <tr><td style="color: var(--text-3); padding: 6px 0;">Pre-Trade Gate</td><td><span class="badge ${t.gateAllPassed ? 'badge-win' : 'badge-warn'}">${gatePass}</span></td></tr>
+          ${t.mistakeTags?.length ? `<tr><td style="color: var(--text-3); padding: 6px 0;">Mistake Tags</td><td>${t.mistakeTags.map(m=>`<span class="badge badge-loss" style="margin-right:4px;">${m}</span>`).join('')}</td></tr>` : ''}
+        </table>
+      </div>
+      ${t.reason ? `<div class="insight-card" style="margin-bottom: var(--sp-3);"><div class="insight-icon">💭</div><div><div class="insight-title">เหตุผลที่เข้า</div><div class="insight-body">${t.reason}</div></div></div>` : ''}
+      ${t.lesson ? `<div class="insight-card" style="background: rgba(245,158,11,.08); border-color: rgba(245,158,11,.25); margin-bottom: var(--sp-3);"><div class="insight-icon">📝</div><div><div class="insight-title">บทเรียน</div><div class="insight-body">${t.lesson}</div></div></div>` : ''}
+    </div>
+  `;
+
+  document.getElementById('deleteTradeBtn').onclick = () => {
+    if (confirm('ลบการเทรดนี้?')) {
+      state.trades = state.trades.filter(tr => tr.id !== id);
+      save();
+      closeModal('tradeDetailModal');
+      renderTradeList();
+      updateHomeData();
+      showToast('🗑️ ลบแล้ว');
+    }
+  };
+
+  openModal('tradeDetailModal');
+}
+
+/* ============================================================
+   ANALYTICS — กราฟและสถิติ
+   ============================================================ */
+/* charts rendered via pure Canvas API — no Chart.js needed */
+
+function setAnalyticsPeriod(period, btn) {
+  state.analyticsPeriod = period;
+  // scope เฉพาะ Analytics page เท่านั้น
+  if (btn) {
+    btn.closest('.period-btns')?.querySelectorAll('.period-btn')
+      .forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  updateAnalytics();
+}
+
+function getFilteredTrades() {
+  const now = new Date();
+  let cutoff;
+  if (state.analyticsPeriod === 'week')  { cutoff = new Date(now); cutoff.setDate(now.getDate()-7); }
+  if (state.analyticsPeriod === 'month') { cutoff = new Date(now); cutoff.setDate(now.getDate()-30); }
+  return state.analyticsPeriod === 'all'
+    ? state.trades
+    : state.trades.filter(t => new Date(t.date) >= cutoff);
+}
+
+function updateAnalytics() {
+  const trades = getFilteredTrades();
+  if (!trades.length) {
+    ['aWinRate','aAvgR','aTotalPnl','aExpectancy','equityChange','aBestDay','aWorstDay','aTotalTrades']
+      .forEach(id => setIfEl(id, '—'));
+    renderEquityChart([], []);
+    renderWLChart([], []);
+    renderMistakeChart({});
+    renderCorrelationData([]);
+    updateCorrelationTable([]);
+    updateSetupAnalysis([]);
+    return;
+  }
+
+  const wins   = trades.filter(t => (t.pnl||0) > 0);
+  const losses = trades.filter(t => (t.pnl||0) < 0);
+  const wr     = Math.round(wins.length / trades.length * 100);
+  const avgR   = avg(trades.map(t => t.rMultiple||0));
+  const totalPnl = trades.reduce((s,t) => s+(t.pnl||0), 0);
+
+  const avgWinR  = wins.length   ? avg(wins.map(t => t.rMultiple||0)) : 0;
+  const avgLossR = losses.length ? avg(losses.map(t => Math.abs(t.rMultiple||0))) : 0;
+  const lr       = 1 - wins.length / trades.length;
+  const expectancy = (wins.length / trades.length * avgWinR) - (lr * avgLossR);
+
+  setIfEl('aWinRate',   wr + '%');
+  setIfEl('aAvgR',      avgR.toFixed(2) + 'R');
+  setIfEl('aTotalPnl',  (totalPnl >= 0 ? '+' : '') + '$' + totalPnl.toFixed(0));
+  setIfEl('aExpectancy', expectancy.toFixed(3) + 'R');
+  setIfEl('aTotalTrades', trades.length);
+
+  // Best/Worst day
+  const byDay = {};
+  trades.forEach(t => {
+    if (!byDay[t.date]) byDay[t.date] = 0;
+    byDay[t.date] += t.pnl || 0;
+  });
+  const dayVals = Object.values(byDay);
+  const bestDay  = dayVals.length ? Math.max(...dayVals) : 0;
+  const worstDay = dayVals.length ? Math.min(...dayVals) : 0;
+  setIfEl('aBestDay',  '+$' + bestDay.toFixed(0));
+  setIfEl('aWorstDay', '$' + worstDay.toFixed(0));
+
+  // Equity curve
+  const sorted  = [...trades].sort((a,b) => new Date(a.timestamp||a.date) - new Date(b.timestamp||b.date));
+  const labels  = sorted.map(t => t.date.slice(5));
+  const equity  = [];
+  let cum = 0;
+  sorted.forEach(t => { cum += (t.pnl || 0); equity.push(cum); });
+
+  const equityChg = equity.length ? equity[equity.length-1] : 0;
+  setIfEl('equityChange', (equityChg >= 0 ? '+' : '') + '$' + equityChg.toFixed(0));
+
+  renderEquityChart(labels, equity);
+  renderWLChart(wins, losses);
+  renderMistakeChart(getMistakeCounts(trades));
+  renderCorrelationData(trades);
+  updateSetupAnalysis(trades);
+}
+
+function getMistakeCounts(trades) {
+  const counts = {};
+  trades.forEach(t => (t.mistakeTags || []).forEach(m => { counts[m] = (counts[m] || 0) + 1; }));
+  return counts;
+}
+
+function renderEquityChart(labels, equity) {
+  const canvas = document.getElementById('equityChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 340;
+  const H = 140;
+  canvas.width = W * window.devicePixelRatio;
+  canvas.height = H * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  ctx.clearRect(0, 0, W, H);
+  if (!equity.length) { drawEmpty(ctx, W, H, 'ยังไม่มีข้อมูล'); return; }
+  drawLineChart(ctx, W, H, equity, equity[equity.length-1] >= 0 ? '#10B981' : '#EF4444', true);
+}
+
+function renderEquityMiniChart() {
+  const canvas = document.getElementById('equityMiniChart');
+  if (!canvas) return;
+  const last30 = new Date(); last30.setDate(last30.getDate() - 30);
+  const trades = state.trades.filter(t => new Date(t.date) >= last30)
+    .sort((a,b) => new Date(a.date) - new Date(b.date));
+  if (!trades.length) return;
+  let cum = 0;
+  const equity = trades.map(t => { cum += (t.pnl||0); return cum; });
+  setIfEl('equityMiniStat', (cum >= 0 ? '+' : '') + '$' + cum.toFixed(0));
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 340;
+  const H = 80;
+  canvas.width = W * window.devicePixelRatio;
+  canvas.height = H * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  ctx.clearRect(0, 0, W, H);
+  drawLineChart(ctx, W, H, equity, cum >= 0 ? '#10B981' : '#EF4444', false);
+}
+
+function drawLineChart(ctx, W, H, data, color, fill) {
+  const pad = { t: 10, r: 10, b: 20, l: 40 };
+  const cW = W - pad.l - pad.r;
+  const cH = H - pad.t - pad.b;
+  const min = Math.min(...data, 0);
+  const max = Math.max(...data, 0);
+  const range = max - min || 1;
+  const toX = (i) => pad.l + (i / (data.length - 1 || 1)) * cW;
+  const toY = (v) => pad.t + cH - ((v - min) / range) * cH;
+  // grid
+  ctx.strokeStyle = 'rgba(100,130,180,0.1)';
+  ctx.lineWidth = 1;
+  [0, 0.5, 1].forEach(p => {
+    const y = pad.t + p * cH;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+    const val = max - p * range;
+    ctx.fillStyle = '#647A9B'; ctx.font = '9px sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText((val >= 0 ? '+' : '') + val.toFixed(0), pad.l - 4, y + 3);
+  });
+  // zero line
+  if (min < 0 && max > 0) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.setLineDash([4, 4]);
+    const y0 = toY(0);
+    ctx.beginPath(); ctx.moveTo(pad.l, y0); ctx.lineTo(W - pad.r, y0); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  // fill
+  if (fill && data.length > 1) {
+    ctx.beginPath();
+    ctx.moveTo(toX(0), toY(data[0]));
+    for (let i = 1; i < data.length; i++) ctx.lineTo(toX(i), toY(data[i]));
+    ctx.lineTo(toX(data.length - 1), pad.t + cH);
+    ctx.lineTo(toX(0), pad.t + cH);
+    ctx.closePath();
+    const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + cH);
+    grad.addColorStop(0, color.replace(')', ',0.3)').replace('rgb', 'rgba').replace('#10B981','rgba(16,185,129,0.25)').replace('#EF4444','rgba(239,68,68,0.25)'));
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad; ctx.fill();
+  }
+  // line
+  if (data.length > 1) {
+    ctx.beginPath();
+    ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.lineJoin = 'round';
+    ctx.moveTo(toX(0), toY(data[0]));
+    for (let i = 1; i < data.length; i++) ctx.lineTo(toX(i), toY(data[i]));
+    ctx.stroke();
+  }
+  // last dot
+  if (data.length) {
+    const lx = toX(data.length - 1), ly = toY(data[data.length - 1]);
+    ctx.beginPath(); ctx.arc(lx, ly, 3, 0, Math.PI * 2);
+    ctx.fillStyle = color; ctx.fill();
+  }
+}
+
+function renderWLChart(wins, losses) {
+  const canvas = document.getElementById('wlChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 340;
+  const H = 120;
+  canvas.width = W * window.devicePixelRatio;
+  canvas.height = H * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  ctx.clearRect(0, 0, W, H);
+  if (!wins.length && !losses.length) { drawEmpty(ctx, W, H, 'ยังไม่มีข้อมูล'); return; }
+
+  // Build R buckets
+  const all = [...wins, ...losses];
+  const rVals = all.map(t => t.rMultiple || 0);
+  const minR = Math.floor(Math.min(...rVals));
+  const maxR = Math.ceil(Math.max(...rVals));
+  const buckets = [];
+  for (let i = minR; i <= maxR; i++) {
+    const w = all.filter(t => Math.round(t.rMultiple||0) === i && (t.pnl||0) >= 0).length;
+    const l = all.filter(t => Math.round(t.rMultiple||0) === i && (t.pnl||0) < 0).length;
+    if (w || l) buckets.push({ label: i + 'R', w, l });
+  }
+  if (!buckets.length) return;
+
+  const pad = { t: 10, r: 10, b: 24, l: 30 };
+  const cW = W - pad.l - pad.r;
+  const cH = H - pad.t - pad.b;
+  const maxVal = Math.max(...buckets.map(b => b.w + b.l));
+  const bW = Math.max(8, cW / buckets.length - 6);
+
+  buckets.forEach((b, i) => {
+    const x = pad.l + (i / buckets.length) * cW + (cW / buckets.length - bW) / 2;
+    const wH = (b.w / (maxVal || 1)) * cH;
+    const lH = (b.l / (maxVal || 1)) * cH;
+    // win bar
+    if (b.w) {
+      ctx.fillStyle = 'rgba(16,185,129,0.75)';
+      roundRect(ctx, x, pad.t + cH - wH, bW / 2, wH, 3);
+    }
+    // loss bar
+    if (b.l) {
+      ctx.fillStyle = 'rgba(239,68,68,0.75)';
+      roundRect(ctx, x + bW / 2, pad.t + cH - lH, bW / 2, lH, 3);
+    }
+    // label
+    ctx.fillStyle = '#647A9B'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(b.label, x + bW / 2, H - pad.b + 12);
+  });
+
+  // legend
+  ctx.fillStyle = 'rgba(16,185,129,0.75)'; ctx.fillRect(pad.l, 2, 10, 8);
+  ctx.fillStyle = '#A8B8D8'; ctx.font = '9px sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('Win', pad.l + 13, 10);
+  ctx.fillStyle = 'rgba(239,68,68,0.75)'; ctx.fillRect(pad.l + 40, 2, 10, 8);
+  ctx.fillStyle = '#A8B8D8'; ctx.fillText('Loss', pad.l + 53, 10);
+}
+
+function renderMistakeChart(counts) {
+  const canvas = document.getElementById('mistakeChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 340;
+  const H = 120;
+  canvas.width = W * window.devicePixelRatio;
+  canvas.height = H * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  ctx.clearRect(0, 0, W, H);
+  const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0,5);
+  if (!sorted.length) { drawEmpty(ctx, W, H, 'ยังไม่มีข้อมูล'); return; }
+
+  const COLS = ['rgba(239,68,68,.75)','rgba(245,158,11,.75)','rgba(59,130,246,.75)','rgba(16,185,129,.75)','rgba(139,92,246,.75)'];
+  const pad = { t: 8, r: 10, b: 8, l: 80 };
+  const cW = W - pad.l - pad.r;
+  const cH = H - pad.t - pad.b;
+  const maxV = sorted[0][1];
+  const rowH = cH / sorted.length;
+
+  sorted.forEach(([name, val], i) => {
+    const y = pad.t + i * rowH;
+    const bH = Math.max(6, rowH - 8);
+    const bW = (val / maxV) * cW;
+    // bar
+    ctx.fillStyle = COLS[i];
+    roundRect(ctx, pad.l, y + (rowH - bH) / 2, bW, bH, 4);
+    // label
+    ctx.fillStyle = '#A8B8D8'; ctx.font = '11px sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText(name.length > 10 ? name.slice(0,10) + '…' : name, pad.l - 6, y + rowH / 2 + 4);
+    // count
+    ctx.fillStyle = '#F0F4FF'; ctx.textAlign = 'left';
+    ctx.fillText(val, pad.l + bW + 6, y + rowH / 2 + 4);
+  });
+}
+
+function renderCorrelationData(trades) {
+  const canvas = document.getElementById('correlationChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 340;
+  const H = 120;
+  canvas.width = W * window.devicePixelRatio;
+  canvas.height = H * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  ctx.clearRect(0, 0, W, H);
+
+  const dayData = {};
+  trades.forEach(t => {
+    if (!dayData[t.date]) dayData[t.date] = 0;
+    dayData[t.date] += t.pnl || 0;
+  });
+  const points = Object.entries(dayData).map(([date, pnl]) => {
+    const log = state.lifeLogs.find(l => l.date === date);
+    return log ? { x: log.disciplineScore || 5, y: pnl } : null;
+  }).filter(Boolean);
+
+  if (points.length < 2) { drawEmpty(ctx, W, H, 'ต้องการข้อมูลอย่างน้อย 2 วัน'); updateCorrelationTable([]); return; }
+
+  const pad = { t: 14, r: 14, b: 24, l: 44 };
+  const cW = W - pad.l - pad.r;
+  const cH = H - pad.t - pad.b;
+  const xs = points.map(p => p.x), ys = points.map(p => p.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys, 0), maxY = Math.max(...ys, 0);
+  const toX = v => pad.l + ((v - minX) / (maxX - minX || 1)) * cW;
+  const toY = v => pad.t + cH - ((v - minY) / (maxY - minY || 1)) * cH;
+
+  // grid
+  ctx.strokeStyle = 'rgba(100,130,180,0.1)'; ctx.lineWidth = 1;
+  [0, 0.5, 1].forEach(p => {
+    const y = pad.t + p * cH;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+    const v = maxY - p * (maxY - minY);
+    ctx.fillStyle = '#647A9B'; ctx.font = '9px sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText(v.toFixed(0), pad.l - 4, y + 3);
+  });
+  // zero line
+  if (minY < 0 && maxY >= 0) {
+    const y0 = toY(0);
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(pad.l, y0); ctx.lineTo(W - pad.r, y0); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  // x axis labels
+  ctx.fillStyle = '#647A9B'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('Discipline →', pad.l + cW / 2, H - 4);
+
+  // dots
+  points.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(toX(p.x), toY(p.y), 5, 0, Math.PI * 2);
+    ctx.fillStyle = p.y >= 0 ? 'rgba(16,185,129,0.7)' : 'rgba(239,68,68,0.7)';
+    ctx.fill();
+  });
+
+  updateCorrelationTable(points);
+}
+
+function updateCorrelationTable(points) {
+  const tbody = document.getElementById('correlationTable');
+  if (!tbody) return;
+  if (points.length < 3) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color: var(--text-3); padding: var(--sp-4);">ต้องการข้อมูลอย่างน้อย 3 วัน</td></tr>';
+    return;
+  }
+  const r = pearsonCorrelation(points.map(p => p.x), points.map(p => p.y));
+  const rAbs = Math.abs(r);
+  const conclusion = rAbs > .6 ? (r > 0 ? '🔥 วินัยดี → เทรดดี' : '⚠️ สัมพันธ์กลับด้าน') :
+                     rAbs > .3 ? (r > 0 ? '✅ ความสัมพันธ์ดี' : '❗ ระวัง pattern') : '↔️ สัมพันธ์น้อย';
+  const hi = points.filter(p => p.x >= 7), lo = points.filter(p => p.x < 5);
+  const hiWR = hi.length ? Math.round(hi.filter(p => p.y > 0).length / hi.length * 100) : 0;
+  const loWR = lo.length ? Math.round(lo.filter(p => p.y > 0).length / lo.length * 100) : 0;
+  tbody.innerHTML = `
+    <tr><td>Discipline ↔ P/L</td><td style="font-family:var(--font-mono);color:${r>0?'var(--win)':'var(--loss)'};">${r.toFixed(2)}</td><td>${conclusion}</td></tr>
+    <tr><td>WR เมื่อ Disc ≥7</td><td style="font-family:var(--font-mono);color:var(--win);">${hiWR}%</td><td>จาก ${hi.length} วัน</td></tr>
+    <tr><td>WR เมื่อ Disc &lt;5</td><td style="font-family:var(--font-mono);color:var(--loss);">${loWR}%</td><td>จาก ${lo.length} วัน</td></tr>`;
+}
+
+function updateSetupAnalysis(trades) {
+  const el = document.getElementById('setupAnalysis');
+  if (!el) return;
+  if (!trades.length) {
+    el.innerHTML = '<div class="empty-state" style="padding:var(--sp-5) 0;"><div style="font-size:28px;">📊</div><div style="font-size:13px;color:var(--text-3);margin-top:var(--sp-2);">ต้องการข้อมูลเพิ่มเติม</div></div>';
+    return;
+  }
+  const bySetup = {};
+  trades.forEach(t => {
+    const s = t.setup || 'Unknown';
+    if (!bySetup[s]) bySetup[s] = { count:0, wins:0, totalR:0 };
+    bySetup[s].count++;
+    if ((t.pnl||0)>0) bySetup[s].wins++;
+    bySetup[s].totalR += t.rMultiple||0;
+  });
+  const rows = Object.entries(bySetup)
+    .map(([setup,d]) => ({ setup, count:d.count, wr:Math.round(d.wins/d.count*100), avgR:d.totalR/d.count }))
+    .sort((a,b) => b.wr - a.wr);
+  el.innerHTML = rows.map(r => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--sp-3) 0;border-bottom:1px solid var(--border);">
+      <div><div style="font-size:13px;font-weight:600;color:var(--text-1);">${r.setup}</div><div style="font-size:11px;color:var(--text-3);">${r.count} ไม้</div></div>
+      <div style="text-align:right;">
+        <div style="font-size:13px;font-weight:700;color:${r.wr>=60?'var(--win)':r.wr>=40?'var(--warn)':'var(--loss)'};">${r.wr}% WR</div>
+        <div style="font-size:11px;color:var(--text-3);">${r.avgR>=0?'+':''}${r.avgR.toFixed(2)}R avg</div>
+      </div>
+    </div>`).join('') + '<div style="height:var(--sp-1)"></div>';
+}
+
+/* Canvas helpers */
+function roundRect(ctx, x, y, w, h, r) {
+  if (w < 0 || h <= 0) return;
+  r = Math.min(r, h/2, w/2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawEmpty(ctx, W, H, msg) {
+  ctx.fillStyle = '#647A9B';
+  ctx.font = '12px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(msg, W/2, H/2 + 4);
+}
+
+function destroyChart(id) {
+  /* no-op — using pure canvas, no Chart.js instances to destroy */
+}
+
+/* ============================================================
+   REVIEW SYSTEM — สรุปและบันทึก
+   ============================================================ */
+function setReview(period, btn) {
+  state.reviewPeriod = period;
+  // scope เฉพาะ Review page เท่านั้น
+  if (btn) {
+    btn.closest('.period-btns')?.querySelectorAll('.period-btn')
+      .forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  renderReviewContent();
+}
+
+function renderReviewContent() {
+  const el = document.getElementById('reviewContent');
+  if (!el) return;
+
+  const now   = new Date();
+  let trades;
+  if (state.reviewPeriod === 'daily') {
+    trades = state.trades.filter(t => t.date === todayKey());
+  } else if (state.reviewPeriod === 'weekly') {
+    const cutoff = new Date(now); cutoff.setDate(now.getDate() - 7);
+    trades = state.trades.filter(t => new Date(t.date) >= cutoff);
+  } else {
+    const cutoff = new Date(now); cutoff.setDate(now.getDate() - 30);
+    trades = state.trades.filter(t => new Date(t.date) >= cutoff);
+  }
+
+  if (!trades.length) {
+    el.innerHTML = `<div class="card"><div class="empty-state" style="padding: var(--sp-5) 0;">
+      <div style="font-size:28px;">📊</div>
+      <div style="font-size:13px; color: var(--text-3); margin-top: var(--sp-2);">ยังไม่มีข้อมูลในช่วงนี้</div>
+    </div></div>`;
+    return;
+  }
+
+  const wins  = trades.filter(t => (t.pnl||0) > 0);
+  const losses= trades.filter(t => (t.pnl||0) < 0);
+  const wr    = Math.round(wins.length / trades.length * 100);
+  const avgR  = avg(trades.map(t => t.rMultiple||0));
+  const totalPnl = trades.reduce((s,t) => s+(t.pnl||0), 0);
+
+  const avgWinR  = wins.length   ? avg(wins.map(t => t.rMultiple||0)) : 0;
+  const avgLossR = losses.length ? avg(losses.map(t => Math.abs(t.rMultiple||0))) : 0;
+  const lr       = trades.length > 0 ? 1 - wins.length / trades.length : 0;
+  const expectancy = (wins.length / trades.length * avgWinR) - (lr * avgLossR);
+
+  const mistakeCounts = getMistakeCounts(trades);
+  const topMistakes   = Object.entries(mistakeCounts).sort((a,b) => b[1]-a[1]).slice(0,3);
+
+  const logs7 = getLast7Logs();
+  const avgDiscipline = logs7.length ? avg(logs7.map(l => l.disciplineScore||0)) : 0;
+
+  el.innerHTML = `
+    <div class="metric-grid">
+      <div class="metric-card animate-in"><div class="metric-icon">🏆</div><div class="metric-val">${wr}%</div><div class="metric-label">Win Rate</div></div>
+      <div class="metric-card animate-in"><div class="metric-icon">📐</div><div class="metric-val">${avgR.toFixed(2)}R</div><div class="metric-label">Avg R</div></div>
+      <div class="metric-card animate-in"><div class="metric-icon">💰</div><div class="metric-val" style="color:${totalPnl>=0?'var(--win)':'var(--loss)'}">${totalPnl>=0?'+':''}$${totalPnl.toFixed(0)}</div><div class="metric-label">Total P/L</div></div>
+      <div class="metric-card animate-in"><div class="metric-icon">📊</div><div class="metric-val">${expectancy.toFixed(2)}R</div><div class="metric-label">Expectancy</div></div>
+    </div>
+    ${topMistakes.length ? `
+    <div class="insight-card" style="margin: 0 var(--sp-4) var(--sp-3);">
+      <div class="insight-icon">⚠️</div>
+      <div>
+        <div class="insight-title">ความผิดพลาดที่พบบ่อย</div>
+        <div class="insight-body">${topMistakes.map(([m,c]) => `<strong>${m}</strong>: ${c} ครั้ง`).join(' · ')}</div>
+      </div>
+    </div>` : ''}
+    <div class="insight-card" style="margin: 0 var(--sp-4) var(--sp-3); background: rgba(14,184,212,.06); border-color: rgba(14,184,212,.25);">
+      <div class="insight-icon">🔍</div>
+      <div>
+        <div class="insight-title">Pattern ที่เห็น</div>
+        <div class="insight-body">
+          Discipline เฉลี่ย ${avgDiscipline.toFixed(1)}/10 ·
+          ${wr >= 55 ? '✅ Win rate ดี — ระบบกำลังทำงาน' :
+            wr >= 40 ? '↔️ Win rate พอใช้ได้ — ยังปรับปรุงได้' :
+            '⚠️ Win rate ต่ำ — ตรวจสอบ setup quality และ Gate'}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function saveReview() {
+  const review = {
+    id:             'R' + Date.now(),
+    period:         state.reviewPeriod,
+    date:           todayKey(),
+    win:            document.getElementById('reviewWin')?.value || '',
+    loss:           document.getElementById('reviewLoss')?.value || '',
+    behavior:       document.getElementById('reviewBehavior')?.value || '',
+    systemProgress: state.systemProgress,
+    nextAction:     document.getElementById('reviewNextAction')?.value || ''
+  };
+  state.reviews.push(review);
+  save();
+
+  // Clear form
+  ['reviewWin','reviewLoss','reviewBehavior','reviewNextAction'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+
+  showToast('✅ บันทึก Review แล้ว!');
+}
+
+/* ============================================================
+   SETTINGS — โหลดและบันทึกการตั้งค่า
+   ============================================================ */
+function loadSettings() {
+  const s = state.settings;
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+  set('settingMaxTrades',    s.maxDailyTrades       || 3);
+  set('settingMaxLoss',      s.maxDailyLossPercent  || 3);
+  set('settingMinRR',        s.minRR                || 2);
+  set('settingMaxEmotion',   s.maxEmotionScore      || 7);
+  set('settingMaxLossStreak',s.maxConsecutiveLosses || 2);
+}
+
+function saveSettings() {
+  const getNum = (id, def) => parseFloat(document.getElementById(id)?.value) || def;
+  state.settings.maxDailyTrades       = getNum('settingMaxTrades', 3);
+  state.settings.maxDailyLossPercent  = getNum('settingMaxLoss', 3);
+  state.settings.minRR                = getNum('settingMinRR', 2);
+  state.settings.maxEmotionScore      = getNum('settingMaxEmotion', 7);
+  state.settings.maxConsecutiveLosses = getNum('settingMaxLossStreak', 2);
+  save();
+  showToast('✅ บันทึกการตั้งค่าแล้ว!');
+}
+
+/* ============================================================
+   EXPORT / IMPORT — ส่งออก นำเข้า ข้อมูล
+   ============================================================ */
+function exportData() {
+  const json = JSON.stringify(state, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `personal-os-backup-${todayKey()}.json`;
+  a.click();
+  showToast('📤 Export JSON สำเร็จ!');
+}
+
+function exportCSV() {
+  const headers = 'Date,Asset,Direction,Timeframe,Setup,Entry,SL,TP,Exit,PnL,R-Multiple,FollowPlan,PreEmotion,PostEmotion,MistakeTags,Lesson,GatePass';
+  const rows = state.trades.map(t => [
+    t.date, t.asset, t.direction, t.timeframe, t.setup,
+    t.entry, t.sl, t.tp, t.exitPrice,
+    (t.pnl||0).toFixed(2), (t.rMultiple||0).toFixed(2),
+    t.followPlan, t.preEmotion, t.postEmotion,
+    (t.mistakeTags||[]).join('/'),
+    '"' + (t.lesson||'').replace(/"/g,'""') + '"',
+    t.gateAllPassed ? 'yes' : 'no'
+  ].join(','));
+
+  const csv = [headers, ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `trading-journal-${todayKey()}.csv`;
+  a.click();
+  showToast('📊 Export CSV สำเร็จ!');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (confirm('นำเข้าข้อมูลจะแทนที่ข้อมูลปัจจุบันทั้งหมด ยืนยัน?')) {
+        state.trades    = imported.trades    || [];
+        state.lifeLogs  = imported.lifeLogs  || [];
+        state.reviews   = imported.reviews   || [];
+        state.settings  = { ...state.settings, ...(imported.settings || {}) };
+        state.isDemoData = false;
+        save();
+        initApp();
+        showToast('📥 Import สำเร็จ!');
+      }
+    } catch { showToast('❌ ไฟล์ไม่ถูกต้อง'); }
+  };
+  reader.readAsText(file);
+}
+
+function confirmReset() {
+  if (confirm('⚠️ คำเตือน: ข้อมูลทั้งหมดจะถูกลบ ยืนยันหรือไม่?')) {
+    if (confirm('แน่ใจหรือไม่? ข้อมูลจะหายถาวร')) {
+      localStorage.removeItem('personal_os_v3');
+      location.reload();
+    }
+  }
+}
+
+/* ============================================================
+   SAMPLE DATA — ข้อมูลตัวอย่างเพื่อสาธิต
+   ============================================================ */
+function loadSampleData() {
+  state.isDemoData = true;
+  const today = new Date();
+  const setups  = ['Breakout','Pullback','Reversal','Momentum','Range'];
+  const assets  = ['BTC/USDT','ETH/USDT','SOL/USDT','BNB/USDT','AVAX/USDT'];
+  const mistakes = [['FOMO'],['Early Exit'],['Revenge'],['Late Entry'],[],[]];
+
+  for (let i = 14; i >= 0; i--) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    const dk = d.toISOString().slice(0, 10);
+
+    const energy   = 4 + Math.floor(Math.random() * 6);
+    const calm     = 4 + Math.floor(Math.random() * 6);
+    const sleepH   = 5 + Math.random() * 4;
+    const lifeCheckDone = {
+      meditate:  Math.random() > .4, exercise: Math.random() > .5,
+      eatwell: true, noscreen: Math.random() > .5,
+      closedloop: Math.random() > .4, gratitude: Math.random() > .3
+    };
+    const doneCount = Object.values(lifeCheckDone).filter(Boolean).length;
+    const selfDriveVal = Math.random() > .3 ? 'driven' : 'mixed';
+    const discipline = calcDisciplineScore(energy, calm, sleepH, doneCount, LIFE_ITEMS.length, selfDriveVal);
+
+    state.lifeLogs.push({
+      date: dk, energy, calm, sleep: sleepH, deepWork: 1 + Math.random() * 3,
+      selfDrive: selfDriveVal,
+      disciplineScore: discipline,
+      alignmentScore:  discipline - Math.random(),
+      lifeChecks: lifeCheckDone,
+      dailyChecks: { sleep: sleepH >= 6, meditate: lifeCheckDone.meditate, exercise: lifeCheckDone.exercise, deepwork: true, review: true, intention: true }
+    });
+
+    const numTrades = i === 0 ? 0 : Math.floor(Math.random() * 3);
+    for (let j = 0; j < numTrades; j++) {
+      const isWin  = Math.random() > .42;
+      const r      = isWin ? (1 + Math.random() * 2.5) : -(0.5 + Math.random() * 1);
+      const entry  = 40000 + Math.random() * 10000;
+      const sl     = entry * (1 - 0.012);
+      const tp     = entry * (1 + 0.025);
+      state.trades.push({
+        id: 'T' + (Date.now() + i * 100 + j),
+        date: dk,
+        timestamp: new Date(d.getTime() + j * 3600000).toISOString(),
+        asset:    assets[Math.floor(Math.random() * assets.length)],
+        exchange: 'Binance',
+        direction: Math.random() > .4 ? 'long' : 'short',
+        timeframe: ['15m','1h','4h'][Math.floor(Math.random()*3)],
+        setup:    setups[Math.floor(Math.random() * setups.length)],
+        trend: 'up', entry, sl, tp,
+        exitPrice: isWin ? tp : sl,
+        capital: 10000, riskPct: 1,
+        pnl:      r * 100,
+        rMultiple: r,
+        reason: 'Pullback to support with trend confirmation',
+        preEmotion:  5 + Math.floor(Math.random() * 4),
+        postEmotion: 5 + Math.floor(Math.random() * 4),
+        news: 'no',
+        followPlan: Math.random() > .25 ? 'yes' : 'no',
+        mistakeTags: isWin ? [] : mistakes[Math.floor(Math.random() * mistakes.length)],
+        lesson: isWin ? '' : 'Should have waited for confirmation signal',
+        gateAllPassed: Math.random() > .3
+      });
+    }
+  }
+  save();
+}
+
+function clearDemoData() {
+  if (confirm('ล้างข้อมูลตัวอย่างทั้งหมดและเริ่มใหม่?')) {
+    localStorage.removeItem('personal_os_v3');
+    location.reload();
+  }
+}
+
+/* ============================================================
+   UTILITIES — ฟังก์ชันเสริม
+   ============================================================ */
+function todayKey() { return new Date().toISOString().slice(0, 10); }
+
+function avg(arr) {
+  return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+}
+
+function calcStreak() {
+  const keys  = new Set(state.lifeLogs.map(l => l.date));
+  let streak  = 0;
+  const today = new Date();
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today); d.setDate(today.getDate() - i);
+    const k = d.toISOString().slice(0, 10);
+    if (keys.has(k)) streak++;
+    else if (i > 0) break; // อนุญาตข้ามวันนี้ถ้ายังไม่ check-in
+  }
+  return streak;
+}
+
+function pearsonCorrelation(x, y) {
+  const n = x.length;
+  if (n < 2) return 0;
+  const mx = avg(x), my = avg(y);
+  const num = x.reduce((s, xi, i) => s + (xi - mx) * (y[i] - my), 0);
+  const dx  = Math.sqrt(x.reduce((s, xi) => s + (xi - mx) ** 2, 0));
+  const dy  = Math.sqrt(y.reduce((s, yi) => s + (yi - my) ** 2, 0));
+  return (dx && dy) ? num / (dx * dy) : 0;
+}
+
+/* ============================================================
+   TOAST NOTIFICATION — แจ้งเตือน
+   ============================================================ */
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+/* ============================================================
+   FIREBASE — config + auth + firestore
+   ============================================================ */
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyA6bxTNUugCn_awjVw-zpbRgQCkyzW4W7A",
+  authDomain:        "personal-os-v3.firebaseapp.com",
+  projectId:         "personal-os-v3",
+  storageBucket:     "personal-os-v3.firebasestorage.app",
+  messagingSenderId: "884241186831",
+  appId:             "1:884241186831:web:4b67fe276bda1853a0637a",
+  measurementId:     "G-LZ0EYK2LNX"
+};
+
+let fbAuth, fbDb;
+let currentUser     = null;
+let syncUnsubscribe = null;
+let lastSyncTime    = null;
+
+/* ============================================================
+   FIREBASE INIT — รอ SDK พร้อมก่อนรัน
+   ============================================================ */
+function initFirebase() {
+  try {
+    if (typeof firebase === 'undefined') {
+      console.warn('Firebase SDK ยังไม่โหลด');
+      return false;
+    }
+    firebase.initializeApp(FIREBASE_CONFIG);
+    fbAuth = firebase.auth();
+    fbDb   = firebase.firestore();
+    fbDb.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+    return true;
+  } catch(e) {
+    console.warn('Firebase init failed:', e);
+    return false;
+  }
+}
+
+/* ============================================================
+   SHOW / HIDE SCREENS
+   ============================================================ */
+function showLoginScreen(msg) {
+  // ซ่อนทุก screen
+  document.getElementById('loginScreen').classList.add('show');
+  document.getElementById('onboarding').classList.remove('show');
+  document.getElementById('app').classList.remove('ready');
+  if (msg) showLoginMsg(msg);
+}
+
+function showLoginMsg(msg) {
+  let el = document.getElementById('loginMsg');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'loginMsg';
+    el.style.cssText = 'color:var(--loss);font-size:13px;margin-top:var(--sp-3);text-align:center;';
+    document.querySelector('.btn-google').insertAdjacentElement('afterend', el);
+  }
+  el.textContent = msg;
+}
+
+/* ============================================================
+   AUTH — Login
+   ============================================================ */
+function loginWithGoogle() {
+  if (!fbAuth) {
+    showLoginMsg('❌ ไม่สามารถเชื่อมต่อ Firebase ได้ กรุณาเปิดผ่าน browser ที่มี internet');
+    return;
+  }
+  const btn = document.querySelector('.btn-google');
+  if (btn) { btn.textContent = '⏳ กำลังเข้าสู่ระบบ...'; btn.disabled = true; }
+
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+
+  // Mobile iOS ต้องใช้ redirect, Desktop ใช้ popup
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if (isMobile) {
+    fbAuth.signInWithRedirect(provider);
+  } else {
+    fbAuth.signInWithPopup(provider)
+      .then(r => onAuthSuccess(r.user))
+      .catch(err => {
+        console.warn(err);
+        if (btn) { btn.innerHTML = googleBtnHTML(); btn.disabled = false; }
+        if (err.code === 'auth/popup-blocked') {
+          fbAuth.signInWithRedirect(provider);
+        } else {
+          showLoginMsg('❌ ' + (err.message || 'Login ไม่สำเร็จ'));
+        }
+      });
+  }
+}
+
+function googleBtnHTML() {
+  return `<svg width="20" height="20" viewBox="0 0 48 48" style="flex-shrink:0">
+    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+  </svg> เข้าสู่ระบบด้วย Google`;
+}
+
+/* ============================================================
+   AUTH — Logout
+   ============================================================ */
+function handleLogout() {
+  if (!confirm('ออกจากระบบ?\nข้อมูลใน Cloud ยังคงอยู่')) return;
+  if (syncUnsubscribe) { syncUnsubscribe(); syncUnsubscribe = null; }
+  currentUser = null;
+  fbAuth.signOut();
+  // เคลียร์ local cache
+  localStorage.removeItem('personal_os_v3');
+  localStorage.removeItem('personal_os_v3_seen');
+  closeModal('profileModal');
+  showLoginScreen();
+}
+
+/* ============================================================
+   AUTH SUCCESS — โหลดข้อมูล + เปิดแอป
+   ============================================================ */
+async function onAuthSuccess(user) {
+  currentUser = user;
+  updateUserUI(user);
+  setSyncDot('syncing');
+
+  // โหลดข้อมูลจาก Firestore
+  await loadFromFirestore(user.uid);
+
+  // เปิดแอป
+  document.getElementById('loginScreen').classList.remove('show');
+  const hasData = state.trades.length > 0 || state.lifeLogs.length > 0;
+  const hasSeen = localStorage.getItem('personal_os_v3_seen');
+  if (hasSeen || hasData) {
+    document.getElementById('app').classList.add('ready');
+    initApp();
+  } else {
+    document.getElementById('onboarding').classList.add('show');
+  }
+  localStorage.setItem('personal_os_v3_seen', '1');
+
+  // เริ่ม real-time sync
+  startRealtimeSync(user.uid);
+}
+
+/* ============================================================
+   USER UI
+   ============================================================ */
+function updateUserUI(user) {
+  if (!user) return;
+  const name    = user.displayName || user.email?.split('@')[0] || 'User';
+  const email   = user.email || '';
+  const photo   = user.photoURL;
+  const initial = name.charAt(0).toUpperCase();
+
+  setIfEl('profileName', name);
+  setIfEl('profileEmail', email);
+  setIfEl('profileBadge', '☁️ Cloud Sync');
+
+  const avatarEl   = document.getElementById('userAvatar');
+  const avatarLgEl = document.getElementById('profileAvatarLg');
+  const imgTag     = photo ? `<img src="${photo}" alt="${name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : initial;
+  if (avatarEl)   avatarEl.innerHTML   = imgTag;
+  if (avatarLgEl) avatarLgEl.innerHTML = imgTag;
+}
+
+function setSyncDot(status) {
+  const dot = document.getElementById('syncDot');
+  if (dot) dot.className = 'sync-dot ' + status;
+  const labels = { synced:'✅ ซิงค์แล้ว', syncing:'🔄 กำลัง sync…', offline:'⚠️ Offline' };
+  setIfEl('syncStatus', labels[status] || status);
+  if (status === 'synced' && lastSyncTime) {
+    setIfEl('lastSyncTime', 'ล่าสุด ' + lastSyncTime.toLocaleTimeString('th-TH'));
+  }
+}
+
+/* ============================================================
+   FIRESTORE — Load
+   ============================================================ */
+function userDoc(uid) {
+  return fbDb.collection('users').doc(uid);
+}
+
+async function loadFromFirestore(uid) {
+  try {
+    const snap = await userDoc(uid).get();
+    if (snap.exists) {
+      const d = snap.data();
+      state.trades    = d.trades    || [];
+      state.lifeLogs  = d.lifeLogs  || [];
+      state.reviews   = d.reviews   || [];
+      state.settings  = { ...state.settings, ...(d.settings || {}) };
+      lastSyncTime    = new Date();
+      setSyncDot('synced');
+      // cache locally
+      _localSave();
+      console.log('✅ Loaded from Firestore:', state.trades.length, 'trades');
+    } else {
+      // User ใหม่ — ไม่มีข้อมูลใน cloud
+      setSyncDot('synced');
+    }
+  } catch(e) {
+    console.warn('Firestore load error:', e);
+    // Fallback: โหลดจาก localStorage cache
+    _localLoad();
+    setSyncDot('offline');
+  }
+}
+
+/* ============================================================
+   FIRESTORE — Save (debounced 1.5s)
+   ============================================================ */
+let _saveTimer = null;
+
+function saveToFirestore() {
+  if (!currentUser || !fbDb) return;
+  if (state.isDemoData) return; // ไม่ sync demo data
+  clearTimeout(_saveTimer);
+  setSyncDot('syncing');
+  _saveTimer = setTimeout(async () => {
+    try {
+      await userDoc(currentUser.uid).set({
+        trades:    state.trades,
+        lifeLogs:  state.lifeLogs,
+        reviews:   state.reviews,
+        settings:  state.settings,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedBy: navigator.userAgent.slice(0, 60)
+      });
+      lastSyncTime = new Date();
+      setSyncDot('synced');
+    } catch(e) {
+      console.warn('Firestore save error:', e);
+      setSyncDot('offline');
+    }
+  }, 1500);
+}
+
+/* ============================================================
+   FIRESTORE — Real-time listener (sync ข้ามอุปกรณ์)
+   ============================================================ */
+function startRealtimeSync(uid) {
+  if (syncUnsubscribe) syncUnsubscribe();
+  syncUnsubscribe = userDoc(uid).onSnapshot(snap => {
+    if (!snap.exists) return;
+    const d = snap.data();
+    if (!d.updatedAt) return;
+    const remoteMs = d.updatedAt.toMillis ? d.updatedAt.toMillis() : 0;
+    const localMs  = lastSyncTime ? lastSyncTime.getTime() : 0;
+    // sync เฉพาะถ้า remote ใหม่กว่า local > 3 วินาที
+    if (remoteMs > localMs + 3000) {
+      state.trades    = d.trades    || state.trades;
+      state.lifeLogs  = d.lifeLogs  || state.lifeLogs;
+      state.reviews   = d.reviews   || state.reviews;
+      lastSyncTime    = new Date(remoteMs);
+      _localSave();
+      // อัพเดต UI
+      updateHomeData();
+      renderTradeList();
+      setSyncDot('synced');
+      showToast('🔄 ซิงค์จากอุปกรณ์อื่น');
+    }
+  }, err => {
+    console.warn('Realtime sync error:', err);
+    setSyncDot('offline');
+  });
+}
+
+/* ============================================================
+   MANUAL SYNC
+   ============================================================ */
+async function syncNow() {
+  if (!currentUser) { showToast('❌ ต้อง Login ก่อน'); return; }
+  clearTimeout(_saveTimer);
+  setSyncDot('syncing');
+  try {
+    await userDoc(currentUser.uid).set({
+      trades: state.trades, lifeLogs: state.lifeLogs,
+      reviews: state.reviews, settings: state.settings,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    lastSyncTime = new Date();
+    setSyncDot('synced');
+    showToast('☁️ Sync สำเร็จ!');
+  } catch(e) {
+    setSyncDot('offline');
+    showToast('❌ Sync ไม่สำเร็จ — ตรวจสอบ internet');
+  }
+}
+
+/* ============================================================
+   OVERRIDE save() — local + cloud
+   ============================================================ */
+function _localSave() {
+  try {
+    localStorage.setItem('personal_os_v3', JSON.stringify({
+      trades: state.trades, lifeLogs: state.lifeLogs,
+      reviews: state.reviews, settings: state.settings, isDemoData: state.isDemoData
+    }));
+  } catch(e) {}
+}
+
+function _localLoad() {
+  try {
+    const raw = localStorage.getItem('personal_os_v3');
+    if (raw) {
+      const d = JSON.parse(raw);
+      state.trades    = d.trades    || [];
+      state.lifeLogs  = d.lifeLogs  || [];
+      state.reviews   = d.reviews   || [];
+      state.settings  = { ...state.settings, ...(d.settings || {}) };
+      state.isDemoData = d.isDemoData || false;
+    }
+  } catch(e) {}
+}
+
+function save() {
+  _localSave();
+  saveToFirestore();
+}
+
+function load() { _localLoad(); }
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+window.addEventListener('DOMContentLoaded', () => {
+  // ผูก modal overlay
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+  });
+
+  // โหลดข้อมูลจาก localStorage
+  _localLoad();
+
+  const hasSeen = localStorage.getItem('personal_os_v3_seen');
+  const hasData = state.trades.length > 0 || state.lifeLogs.length > 0;
+
+  if (hasSeen || hasData) {
+    // เคยใช้แล้ว → เข้าแอปเลย
+    document.getElementById('app').classList.add('ready');
+    initApp();
+  } else {
+    // ครั้งแรก → แสดง onboarding
+    document.getElementById('onboarding').classList.add('show');
+  }
+
+  localStorage.setItem('personal_os_v3_seen', '1');
+});
+</script>
+
+</body>
+</html>
